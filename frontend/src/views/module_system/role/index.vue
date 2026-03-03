@@ -726,6 +726,9 @@ async function handleDelete(ids: number[]) {
         loading.value = true;
         await RoleAPI.deleteRole(ids);
         handleResetQuery();
+        // 更新全局用户状态，刷新权限信息
+        const userStore = useUserStore();
+        await userStore.getUserInfo();
       } catch (error: any) {
         console.error(error);
       } finally {

@@ -892,6 +892,11 @@ async function handleDelete(ids: number[]) {
         submitLoading.value = true;
         await UserAPI.deleteUser(ids);
         handleResetQuery();
+        // 如果删除的是当前用户，则清空用户信息
+        const userStore = useUserStore();
+        if (userStore.basicInfo.id && ids.includes(userStore.basicInfo.id)) {
+          userStore.clearUserInfo();
+        }
       } catch (error: any) {
         console.error(error);
       } finally {

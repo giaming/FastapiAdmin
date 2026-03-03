@@ -470,7 +470,7 @@
 </template>
 
 <script setup lang="ts">
-import { useDictStore } from "@/store/index";
+import { useDictStore, useNoticeStore } from "@/store/index";
 import UserTableSelect from "@/views/module_system/user/components/UserTableSelect.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import type { IContentConfig } from "@/components/CURD/types";
@@ -556,6 +556,9 @@ const rules = reactive({
 
 // 日期范围临时变量
 const dateRange = ref<[Date, Date] | []>([]);
+
+// 通知 store
+const noticeStore = useNoticeStore();
 
 // 处理日期范围变化
 function handleDateRangeChange(range: [Date, Date]) {
@@ -673,6 +676,8 @@ async function handleSubmit() {
           resetForm();
           handleCloseDialog();
           handleResetQuery();
+          // 重新加载通知以同步到浏览器内存
+          await noticeStore.getNotice();
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -685,6 +690,8 @@ async function handleSubmit() {
           resetForm();
           handleCloseDialog();
           handleResetQuery();
+          // 重新加载通知以同步到浏览器内存
+          await noticeStore.getNotice();
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -707,6 +714,8 @@ async function handleDelete(ids: number[]) {
         loading.value = true;
         await NoticeAPI.deleteNotice(ids);
         handleResetQuery();
+        // 重新加载通知以同步到浏览器内存
+        await noticeStore.getNotice();
       } catch (error: any) {
         console.error(error);
       } finally {

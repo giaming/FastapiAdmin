@@ -410,6 +410,7 @@ defineOptions({
 });
 
 import ParamsAPI, { ConfigTable, ConfigForm, ConfigPageQuery } from "@/api/module_system/params";
+import { useConfigStore } from "@/store";
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import { formatToDateTime } from "@/utils/dateUtil";
@@ -484,6 +485,9 @@ const rules = reactive({
 
 // 日期范围临时变量
 const dateRange = ref<[Date, Date] | []>([]);
+
+// 配置 store
+const configStore = useConfigStore();
 
 // 处理日期范围变化
 function handleDateRangeChange(range: [Date, Date]) {
@@ -591,10 +595,13 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await ParamsAPI.updateParams(id, formData);
+          await ParamsAPI.updateParams(id, { id, ...formData });
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
+          // 重新加载配置以同步到浏览器内存
+          configStore.isConfigLoaded = false;
+          await configStore.getConfig();
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -606,6 +613,9 @@ async function handleSubmit() {
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
+          // 重新加载配置以同步到浏览器内存
+          configStore.isConfigLoaded = false;
+          await configStore.getConfig();
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -628,6 +638,9 @@ async function handleDelete(ids: number[]) {
         loading.value = true;
         await ParamsAPI.deleteParams(ids);
         handleResetQuery();
+        // 重新加载配置以同步到浏览器内存
+        configStore.isConfigLoaded = false;
+        await configStore.getConfig();
       } catch (error: any) {
         console.error(error);
       } finally {

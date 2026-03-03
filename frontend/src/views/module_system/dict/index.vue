@@ -420,6 +420,7 @@ defineOptions({
 });
 
 import DictAPI, { DictTable, DictForm, DictPageQuery } from "@/api/module_system/dict";
+import { useDictStore } from "@/store";
 import DataDrawer from "@/views/module_system/dict/components/DataDrawer.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import type { IContentConfig } from "@/components/CURD/types";
@@ -493,6 +494,9 @@ const rules = reactive({
 
 // 日期范围临时变量
 const dateRange = ref<[Date, Date] | []>([]);
+
+// 字典 store
+const dictStore = useDictStore();
 
 // 处理日期范围变化
 function handleDateRangeChange(range: [Date, Date]) {
@@ -615,6 +619,11 @@ async function handleSubmit() {
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
+          // 重新加载字典以同步到浏览器内存
+          dictStore.clearDictData();
+          if (formData.dict_type) {
+            await dictStore.getDict([formData.dict_type]);
+          }
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -626,6 +635,11 @@ async function handleSubmit() {
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
+          // 重新加载字典以同步到浏览器内存
+          dictStore.clearDictData();
+          if (formData.dict_type) {
+            await dictStore.getDict([formData.dict_type]);
+          }
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -648,6 +662,12 @@ async function handleDelete(ids: number[]) {
         loading.value = true;
         await DictAPI.deleteDictType(ids);
         handleResetQuery();
+        // 重新加载字典以同步到浏览器内存
+        dictStore.clearDictData();
+        const dictTypes = Object.keys(dictStore.dictData);
+        if (dictTypes.length > 0) {
+          await dictStore.getDict(dictTypes);
+        }
       } catch (error: any) {
         console.error(error);
       } finally {
@@ -677,6 +697,12 @@ async function handleMoreClick(status: string) {
           loading.value = true;
           await DictAPI.batchDictType({ ids: selectIds.value, status });
           handleResetQuery();
+          // 重新加载字典以同步到浏览器内存
+          dictStore.clearDictData();
+          const dictTypes = Object.keys(dictStore.dictData);
+          if (dictTypes.length > 0) {
+            await dictStore.getDict(dictTypes);
+          }
         } catch (error: any) {
           console.error(error);
         } finally {

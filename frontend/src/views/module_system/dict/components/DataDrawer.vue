@@ -412,6 +412,7 @@ const props = defineProps({
 
 const drawerVisible = defineModel<boolean>();
 import DictAPI, { DictDataTable, DictDataForm, DictDataPageQuery } from "@/api/module_system/dict";
+import { useDictStore } from "@/store";
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 import ExportModal from "@/components/CURD/ExportModal.vue";
@@ -450,6 +451,9 @@ const queryFormData = reactive<DictDataPageQuery>({
   created_time: undefined,
   updated_time: undefined,
 });
+
+// 字典 store
+const dictStore = useDictStore();
 
 // 编辑表单
 const formData = reactive<DictDataForm>({
@@ -608,6 +612,11 @@ async function handleSubmit() {
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
+          // 重新加载字典以同步到浏览器内存
+          dictStore.clearDictData();
+          if (formData.dict_type) {
+            await dictStore.getDict([formData.dict_type]);
+          }
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -619,6 +628,11 @@ async function handleSubmit() {
           dialogVisible.visible = false;
           resetForm();
           handleResetQuery();
+          // 重新加载字典以同步到浏览器内存
+          dictStore.clearDictData();
+          if (formData.dict_type) {
+            await dictStore.getDict([formData.dict_type]);
+          }
         } catch (error: any) {
           console.error(error);
         } finally {
@@ -641,6 +655,14 @@ async function handleDelete(ids: number[]) {
         loading.value = true;
         await DictAPI.deleteDictData(ids);
         handleResetQuery();
+        // 重新加载字典以同步到浏览器内存
+        dictStore.clearDictData();
+        const dictTypes = Object.keys(dictStore.dictData);
+        if (dictTypes.length > 0) {
+          await dictStore.getDict([props.dictType]);
+        } else {
+          await dictStore.getDict(dictTypes);
+        }
       } catch (error: any) {
         console.error(error);
       } finally {
@@ -670,6 +692,11 @@ async function handleMoreClick(status: string) {
           loading.value = true;
           await DictAPI.batchDictData({ ids: selectIds.value, status });
           handleResetQuery();
+          // 重新加载字典以同步到浏览器内存
+          dictStore.clearDictData();
+          if (props.dictType) {
+            await dictStore.getDict([props.dictType]);
+          }
         } catch (error: any) {
           console.error(error);
         } finally {

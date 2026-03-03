@@ -421,7 +421,8 @@ const submitChanges = async () => {
       delete modifiedFields[key];
     });
 
-    // 重新加载配置数据
+    // 重新加载配置数据（强制重新加载以同步到浏览器内存）
+    configStore.isConfigLoaded = false;
     await configStore.getConfig();
     initializeLists();
   } catch (error) {

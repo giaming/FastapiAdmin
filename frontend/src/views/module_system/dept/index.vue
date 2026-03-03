@@ -631,6 +631,9 @@ async function handleDelete(ids: number[]) {
         loading.value = true;
         await DeptAPI.deleteDept(ids);
         handleResetQuery();
+        // 更新全局用户状态，刷新部门信息
+        const userStore = useUserStore();
+        await userStore.getUserInfo();
       } catch (error: any) {
         console.error(error);
       } finally {
