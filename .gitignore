@@ -27,8 +27,7 @@ frontend/.DS_Store
 frontend/node_modules
 frontend/dist
 frontend/.husky
-frontend/.env.development
-frontend/.env.production
+
 frontend/src/types/auto-imports.d.ts
 frontend/src/types/components.d.ts
 
