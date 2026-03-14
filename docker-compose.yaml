@@ -7,9 +7,9 @@ services:
     restart: always
     environment:
       TZ: "Asia/Shanghai"
-      MYSQL_ROOT_PASSWORD: "FastApi123abc"
+      MYSQL_ROOT_PASSWORD: "fastapiadmin"
       MYSQL_DATABASE: "fastapiadmin"
-      MYSQL_PASSWORD: "FastApi123abc"
+      MYSQL_PASSWORD: "fastapiadmin"
       MYSQL_USER: "fastapiadmin"
       MYSQL_TZINFO_TO_SYS_TABLES: 1 # 初始化MySQL时区表，解决时差问题
     ports:
@@ -24,7 +24,7 @@ services:
       - app_network
     # 健康检查：检测MySQL是否真正就绪，避免后端启动早于MySQL
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pFastApi123abc"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pfastapiadmin"]
       interval: 5s                  # 每5秒检测一次
       timeout: 30s                  # 超时时间30秒
       retries: 10                   # 重试10次，失败则认为容器未就绪
@@ -42,7 +42,7 @@ services:
     volumes:
       # 挂载Redis配置文件，实现自定义配置
       - ./devops/redis/data:/data
-    command: redis-server --requirepass FastApi123abc
+    command: redis-server --requirepass fastapiadmin
     networks:
       - app_network
     
@@ -57,9 +57,9 @@ services:
     environment:
       TZ: "Asia/Shanghai"
       DATABASE_HOST: "mysql"
-      DATABASE_PASSWORD: "FastApi123abc"
+      DATABASE_PASSWORD: "fastapiadmin"
       REDIS_HOST: "redis"
-      REDIS_PASSWORD: "FastApi123abc"
+      REDIS_PASSWORD: "fastapiadmin"
     ports:
       - "8001:8001"
     volumes:
