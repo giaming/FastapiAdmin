@@ -1,5 +1,5 @@
 # 使用官方的 Python 3.10 镜像作为基础镜像
-FROM python:3.10
+FROM docker.io/python:3.10.14-slim
 
 # 使用 LABEL 替代 MAINTAINER
 LABEL maintainer="948080782@qq.com"

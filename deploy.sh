@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 设置全局变量
-PROJECT_NAME="FastapiAdmin"
+PROJECT_NAME="Admin"
 WORK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # 检测脚本执行位置
@@ -14,14 +14,8 @@ else
     PROJECT_PATH="${WORK_DIR}/${PROJECT_NAME}"
 fi
 
-GIT_REPO="https://gitee.com/fastapiadmin/${PROJECT_NAME}.git"
-
 # 是否有更新前端
 UPDATE_FRONTEND=false
-# 是否有更新移动端
-UPDATE_FASTAPP=false
-# 是否有更新官网
-UPDATE_FASTDOCS=false
 
 # 日志级别控制
 LOG_LEVEL=${LOG_LEVEL:-INFO}
@@ -92,16 +86,8 @@ stop_project() {
             exit 1
         fi
     else
-        log "📥 项目不存在，开始克隆代码到 ${PROJECT_PATH}" "INFO"
-        log "📂 进入工作目录: ${WORK_DIR}" "INFO"
-        cd "${WORK_DIR}" || { log "❌ 无法进入工作目录：${WORK_DIR}" "ERROR"; exit 1; }
-        git clone "${GIT_REPO}" || { log "❌ 项目克隆失败：${GIT_REPO}" "ERROR"; exit 1; }
-        log "📂 克隆完成，进入项目目录: ${PROJECT_PATH}" "INFO"
-        cd "${PROJECT_PATH}" || { log "❌ 无法进入项目目录：${PROJECT_PATH}" "ERROR"; exit 1; }
-        UPDATE_FRONTEND=true
-        UPDATE_FASTAPP=true
-        UPDATE_FASTDOCS=true
-        log "✅ 代码克隆成功，当前目录: $(pwd)" "INFO"
+        log "❌ 项目目录不存在：${PROJECT_PATH}" "ERROR"
+        exit 1
     fi
 }
 
@@ -116,35 +102,13 @@ update_code() {
         cd "${PROJECT_PATH}" || { log "❌ 无法进入项目目录：${PROJECT_PATH}" "ERROR"; exit 1; }
     fi
     
-    # 检查是否是新克隆的项目
-    if [ ! -d ".git" ]; then
-        log "📥 初始化Git仓库..." "INFO"
-        git init
-        git remote add origin "${GIT_REPO}"
-        git pull origin master
-    else
-        # 保存当前分支
-        local current_branch=$(git rev-parse --abbrev-ref HEAD)
-        log "📂 当前Git分支: ${current_branch}" "INFO"
-        git pull --force || { log "❌ 拉取更新失败" "ERROR"; exit 1; }
-        git log -1 --oneline || { log "❌ 获取提交信息失败" "ERROR"; exit 1; }
-    fi
-    
     # 检查目录存在性并设置更新标志
     if [ -d "frontend" ]; then
         UPDATE_FRONTEND=true
         log "📦 检测到前端工程" "INFO"
     fi
-    if [ -d "fastapp" ]; then
-        UPDATE_FASTAPP=true
-        log "📦 检测到移动端工程" "INFO"
-    fi
-    if [ -d "fastdocs" ]; then
-        UPDATE_FASTDOCS=true
-        log "📦 检测到官网工程" "INFO"
-    fi
     
-    log "✅ 代码更新成功" "INFO"
+    log "✅ 本地代码检查完成" "INFO"
 }
 
 # 打包前端
@@ -159,28 +123,6 @@ build_frontend() {
         log "🔨 打包前端工程..." "INFO"
         pnpm run build || { log "❌ 前端工程打包失败" "ERROR"; exit 1; }
         log "✅ 前端工程打包成功" "INFO"
-        cd .. || { log "❌ 无法返回项目根目录" "ERROR"; exit 1; }
-    fi
-
-    # 构建小程序
-    if [ -d "fastapp" ] && [ "$UPDATE_FASTAPP" = true ]; then
-        cd fastapp || { log "❌ 无法进入小程序目录" "ERROR"; exit 1; }
-        log "📦 安装小程序依赖..." "INFO"
-        pnpm install || { log "❌ 小程序依赖安装失败" "ERROR"; exit 1; }
-        log "🔨 打包小程序工程..." "INFO"
-        pnpm run build:h5 || { log "❌ 小程序工程打包失败" "ERROR"; exit 1; }
-        log "✅ 小程序工程打包成功" "INFO"
-        cd .. || { log "❌ 无法返回项目根目录" "ERROR"; exit 1; }
-    fi
-
-    # 构建项目文档
-    if [ -d "fastdocs" ] && [ "$UPDATE_FASTDOCS" = true ]; then
-        cd fastdocs || { log "❌ 无法进入项目文档目录" "ERROR"; exit 1; }
-        log "📦 安装项目文档依赖..." "INFO"
-        pnpm install || { log "❌ 项目文档依赖安装失败" "ERROR"; exit 1; }
-        log "🔨 打包项目文档..." "INFO"
-        pnpm run docs:build || { log "❌ 项目文档打包生成失败" "ERROR"; exit 1; }
-        log "✅ 项目文档打包成功" "INFO"
         cd .. || { log "❌ 无法返回项目根目录" "ERROR"; exit 1; }
     fi
 }
@@ -258,20 +200,18 @@ handle_interrupt() {
 # 主函数
 main() {
     log "==========🚀 开始部署流程==========" "INFO"
-    log "📂 脚本所在目录: ${WORK_DIR}" "INFO"
-    log "🎯 项目完整路径: ${PROJECT_PATH}" "INFO"
+    log "📂 脚本所在目录：${WORK_DIR}" "INFO"
+    log "🎯 项目完整路径：${PROJECT_PATH}" "INFO"
     
     check_permissions
     stop_project
     update_code
-    # build_frontend
+    build_frontend
     start_containers
     show_containers_logs
     
     log "🎉 部署完成！以下是访问信息：
-    📌 官网: https://service.fastapiadmin.com
     📌 前端: https://service.fastapiadmin.com/web
-    📌 小程序: https://service.fastapiadmin.com/app
     📌 登录信息: 账号 admin，密码 123456" "SUCCESS"
 }
 
