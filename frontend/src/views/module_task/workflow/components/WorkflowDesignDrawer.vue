@@ -751,10 +751,10 @@ const handleClose = () => {
 };
 
 // 历史记录管理
-const history = ref<{ nodes: Node[]; edges: Edge[] }[]>([]);
+const history = ref<Array<{ nodes: any[]; edges: any[] }>>([]);
 const historyIndex = ref(-1);
 
-function saveToHistory(nodesData: Node[], edgesData: Edge[]) {
+function saveToHistory(nodesData: any[], edgesData: any[]) {
   history.value = history.value.slice(0, historyIndex.value + 1);
   history.value.push({ nodes: nodesData, edges: edgesData });
   historyIndex.value = history.value.length - 1;

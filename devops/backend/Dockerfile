@@ -2,7 +2,7 @@
 FROM docker.io/python:3.10.14-slim
 
 # 使用 LABEL 替代 MAINTAINER
-LABEL maintainer="948080782@qq.com"
+LABEL maintainer="ziguiyue@173.com"
 
 # 设置时区
 ENV TZ Asia/Shanghai

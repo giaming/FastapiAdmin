@@ -85,7 +85,22 @@ const connectWebSocket = () => {
   error.value = "";
 
   try {
-    const url = new URL("/api/v1/ai/chat/ws", WS_URL);
+    const fallbackBase = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
+    const rawBase = String(WS_URL || "").trim();
+    let base = rawBase || fallbackBase;
+
+    try {
+      const parsed = new URL(base);
+      const isLoopback = parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
+      if (isLoopback && window.location.hostname && window.location.hostname !== parsed.hostname) {
+        parsed.hostname = window.location.hostname;
+        base = parsed.toString();
+      }
+    } catch {
+      base = fallbackBase;
+    }
+
+    const url = new URL("/api/v1/ai/chat/ws", base);
     const token = Auth.getAccessToken();
     if (token) url.searchParams.append("token", token);
 

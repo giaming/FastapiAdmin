@@ -186,6 +186,15 @@ pnpm run dev
 pnpm run build
 ```
 
+### 局域网访问（使用 IP）
+
+- 后端默认监听 `0.0.0.0:8001`（配置在 `backend/env/.env.dev` 或 `backend/env/.env.prod`），局域网可通过以下地址访问：
+  - Swagger：`http://<你的局域网IP>:8001/api/v1/docs`
+  - ReDoc：`http://<你的局域网IP>:8001/api/v1/redoc`
+- 前端开发服务器默认监听 `0.0.0.0:5180`，局域网可通过以下地址访问：
+  - Web：`http://<你的局域网IP>:5180/web/`
+- 若使用“智能助手”WebSocket，在局域网通过 IP 访问前端时无需改域名；如遇连接失败，确认后端端口（8001）与防火墙放行。
+
 ### 🐳 Docker 部署
 
 #### 方式一：脚本放在项目内执行（推荐）
