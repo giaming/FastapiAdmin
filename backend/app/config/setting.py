@@ -35,10 +35,10 @@ class Settings(BaseSettings):
     # ******************* API文档配置 ****************** #
     # ================================================= #
     DEBUG: bool = True  # 调试模式
-    TITLE: str = "🎉 FastapiAdmin 🎉 "  # 文档标题
+    TITLE: str = "🎉 LingxiAdmin 🎉 "  # 文档标题
     VERSION: str = "0.1.0"  # 版本号
     DESCRIPTION: str = (
-        "该项目是一个基于python的web服务框架，基于fastapi和sqlalchemy实现。"  # 文档描述
+        "该项目是一个基于 Python 的 Web 服务框架，基于 FastAPI 和 SQLAlchemy 实现。"  # 文档描述
     )
     SUMMARY: str = "接口汇总"  # 文档概述
     DOCS_URL: str = "/docs"  # Swagger UI路径
@@ -95,7 +95,7 @@ class Settings(BaseSettings):
     DATABASE_PORT: int = 3306
     DATABASE_USER: str = "root"
     DATABASE_PASSWORD: str = "ServBay.dev"
-    DATABASE_NAME: str = "fastapiadmin"
+    DATABASE_NAME: str = "lingxiadmin"
 
     # ================================================= #
     # ******************** Redis配置 ******************* #
@@ -187,7 +187,7 @@ class Settings(BaseSettings):
     # ================================================= #
     # ******************* 请求限制配置 ****************** #
     # ================================================= #
-    REQUEST_LIMITER_REDIS_PREFIX: str = "fastapiadmin:request_limiter:"
+    REQUEST_LIMITER_REDIS_PREFIX: str = "lingxiadmin:request_limiter:"
 
     # ================================================= #
     # ******************* 重构配置 ******************* #

@@ -15,36 +15,6 @@
     </div>
     <!-- 登录页主体 -->
     <div class="auth-view__wrapper">
-      <!-- 可选：左侧产品介绍区域，如不需要可整段删除，右侧登录表单会自动居中展示 -->
-      <section class="auth-feature">
-        <div class="auth-feature__badge">
-          <span class="auth-feature__dot" />
-          Enterprise Ready
-        </div>
-        <h1 class="auth-feature__title">企业级管理系统</h1>
-        <p class="auth-feature__subtitle">
-          提供安全、高效、可扩展的管理解决方案，助力企业数字化转型与业务增长。
-        </p>
-        <ul class="auth-feature__highlights">
-          <li>
-            <span>✓</span>
-            统一身份认证与权限管理
-          </li>
-          <li>
-            <span>✓</span>
-            支持定时任务与任务调度
-          </li>
-          <li>
-            <span>✓</span>
-            数据安全与操作审计
-          </li>
-          <li>
-            <span>✓</span>
-            灵活扩展与高可用架构
-          </li>
-        </ul>
-      </section>
-
       <!-- 登录页主体容器 -->
       <section class="auth-panel">
         <!-- 标题 -->
@@ -146,32 +116,6 @@ const formComponents = {
 const loginPreset = reactive<{ username: string; password: string }>({
   username: "admin",
   password: "123456",
-});
-
-let notificationInstance: ReturnType<typeof ElNotification> | null = null;
-
-const showVoteNotification = () => {
-  notificationInstance = ElNotification({
-    title: "⭐ FastapiAdmin 完全开源 · 期待您的 Star 支持 🙏",
-    message: `项目持续迭代中，若对您有所帮助，欢迎点亮 Star 支持！
-    <br/><a href="https://github.com/fastapiadmin/FastapiAdmin" target="_blank" style="color: var(--el-color-primary); text-decoration: none; font-weight: 500;">Github仓库 →</a>
-    <br/><a href="https://gitee.com/fastapiadmin/FastapiAdmin" target="_blank" style="color: var(--el-color-warning); text-decoration: none; font-weight: 500;">Gitee仓库 →</a>`,
-    type: "success",
-    position: "bottom-left",
-    duration: 0,
-    dangerouslyUseHTMLString: true,
-  });
-};
-
-onMounted(() => {
-  setTimeout(showVoteNotification, 500);
-});
-
-onBeforeUnmount(() => {
-  if (notificationInstance) {
-    notificationInstance.close();
-    notificationInstance = null;
-  }
 });
 </script>
 

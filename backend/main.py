@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
 # typer.Option是非必填；typer.Argument是必填
 @fastapiadmin_cli.command(
     name="run",
-    help="启动 FastapiAdmin 服务, 运行 python main.py run --env=dev 不加参数默认 dev 环境",
+    help="启动 LingxiAdmin 服务，运行 python main.py run --env=dev 不加参数默认 dev 环境",
 )
 def run(
     env: Annotated[

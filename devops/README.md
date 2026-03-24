@@ -9,7 +9,7 @@ FastapiAdmin 是一个基于 FastAPI 和 Vue3 的管理系统，包含后端 API
 ## 项目结构
 
 ```sh
-FastapiAdmin/
+LingxiAdmin/
 ├── backend/      # 后端应用代码
 ├── frontend/     # 前端应用代码
 ├── devops/       # 部署配置文件

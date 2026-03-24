@@ -33,7 +33,7 @@
 ## 📦 工程结构概览
 
 ```sh
-FastapiAdmin
+LingxiAdmin
 ├─ backend               # 后端工程 (FastAPI + Python)
 ├─ frontend              # Web前端工程 (Vue3 + Element Plus)
 ├─ devops                # 部署配置
@@ -163,7 +163,7 @@ pnpm run build
 ```bash
 # 1. 克隆代码到服务器
 git clone https://gitee.com/fastapiadmin/FastapiAdmin.git
-cd FastapiAdmin
+cd LingxiAdmin
 
 # 2. 赋予执行权限并部署
 chmod +x deploy.sh

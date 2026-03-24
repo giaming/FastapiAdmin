@@ -1,8 +1,5 @@
 <template>
   <div class="dashboard-container">
-    <!-- github 角标 -->
-    <GithubCorner class="github-corner" />
-
     <el-card shadow="hover">
       <div class="flex flex-wrap">
         <!-- 左侧问候语区域 -->
@@ -24,67 +21,6 @@
               {{ timefix }}{{ userStore.basicInfo.name }}，{{ welcome }}
             </div>
             <p class="text-sm text-gray">今日天气晴朗，气温在15℃至25℃之间，东南风。</p>
-          </div>
-        </div>
-
-        <!-- 右侧图标区域 - PC端 -->
-        <div class="hidden sm:block">
-          <div class="flex items-end space-x-6">
-            <!-- 文档 -->
-            <div class="flex flex-col items-center">
-              <div class="font-bold color-#4080ff text-sm flex items-center">
-                <el-icon class="mr-2px"><Document /></el-icon>
-                文档
-              </div>
-              <div class="mt-3 whitespace-nowrap">
-                <el-link
-                  href="https://blog.csdn.net/weixin_46768253/article/details/149569141?spm=1001.2014.3001.5502"
-                  target="_blank"
-                >
-                  <div class="i-svg:csdn text-lg" />
-                </el-link>
-              </div>
-            </div>
-            <!-- 仓库 -->
-            <div class="flex flex-col items-center">
-              <div class="font-bold color-#ff9a2e text-sm flex items-center">
-                <el-icon class="mr-2px">
-                  <Folder />
-                </el-icon>
-                仓库
-              </div>
-              <div class="mt-3 whitespace-nowrap">
-                <el-link href="https://gitee.com/fastapiadmin/FastapiAdmin" target="_blank">
-                  <div class="i-svg:gitee text-lg color-#F76560" />
-                </el-link>
-                <el-divider direction="vertical" />
-                <el-link href="https://github.com/fastapiadmin/FastapiAdmin" target="_blank">
-                  <div class="i-svg:github text-lg color-#4080FF" />
-                </el-link>
-                <el-divider direction="vertical" />
-                <el-link href="https://gitcode.com/qq_36002987/FastapiAdmin" target="_blank">
-                  <div class="i-svg:gitcode text-lg color-#FF9A2E" />
-                </el-link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 移动端图标区域 -->
-        <div class="w-full sm:hidden mt-3">
-          <div class="flex justify-end space-x-4 overflow-x-auto">
-            <!-- 仓库图标 -->
-            <el-link href="https://gitee.com/fastapiadmin/FastapiAdmin" target="_blank">
-              <div class="i-svg:gitee text-lg color-#F76560" />
-            </el-link>
-            <el-divider direction="vertical" />
-            <el-link href="https://github.com/fastapiadmin/FastapiAdmin" target="_blank">
-              <div class="i-svg:github text-lg color-#4080FF" />
-            </el-link>
-            <el-divider direction="vertical" />
-            <el-link href="https://gitcode.com/qq_36002987/FastapiAdmin" target="_blank">
-              <div class="i-svg:gitcode text-lg color-#FF9A2E" />
-            </el-link>
           </div>
         </div>
       </div>
@@ -271,12 +207,7 @@
           <template #header>
             <div class="flex-x-between">
               <span class="header-title">最新动态</span>
-              <el-link
-                type="primary"
-                underline="never"
-                href="https://gitee.com/fastapiadmin/FastapiAdmin/releases"
-                target="_blank"
-              >
+              <el-link type="primary" underline="never" href="#" target="_blank">
                 完整记录
                 <el-icon class="link-icon">
                   <TopRight />
@@ -343,7 +274,7 @@ import { Connection, Failed, UserFilled } from "@element-plus/icons-vue";
 import { greetings } from "@/utils/common";
 
 const timefix = greetings();
-const welcome = "祝你开心每一天！";
+const welcome = "欢迎您回来！";
 
 interface VersionItem {
   id: string;
@@ -358,30 +289,6 @@ const userStore = useUserStore();
 
 // 当前通知公告列表
 const vesionList = ref<VersionItem[]>([
-  {
-    id: "1",
-    title: "v3.2.1",
-    date: dayjs().format("YYYY-MM-DD HH:mm:ss"),
-    content: "优化性能，修复若干小bug。",
-    link: "https://gitee.com/fastapiadmin/FastapiAdmin/releases",
-    tag: "更新",
-  },
-  {
-    id: "2",
-    title: "v3.2.0",
-    date: dayjs().subtract(1, "day").format("YYYY-MM-DD HH:mm:ss"),
-    content: "新增用户行为分析功能。",
-    link: "https://gitee.com/fastapiadmin/FastapiAdmin/releases",
-    tag: "新功能",
-  },
-  {
-    id: "3",
-    title: "v3.1.0",
-    date: dayjs().subtract(3, "day").format("YYYY-MM-DD HH:mm:ss"),
-    content: "优化权限管理系统。",
-    link: "https://gitee.com/fastapiadmin/FastapiAdmin/releases",
-    tag: "优化",
-  },
 ]);
 
 // 访客统计数据加载状态
