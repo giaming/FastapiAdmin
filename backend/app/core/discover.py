@@ -70,20 +70,30 @@ def get_dynamic_router() -> APIRouter:
             try:
                 # 动态导入模块
                 module = importlib.import_module(module_path)
-
-                # 查找并注册所有APIRouter实例
+            
+                # 查找并注册所有 APIRouter 实例
                 for attr_name in dir(module):
-                    attr_value = getattr(module, attr_name, None)
-
-                    # 只注册APIRouter实例，且避免重复注册
-                    if isinstance(attr_value, APIRouter):
-                        router_id = id(attr_value)
-                        if router_id not in seen_router_ids:
-                            seen_router_ids.add(router_id)
-                            container_router.include_router(attr_value)
-
+                    # 跳过私有属性
+                    if attr_name.startswith('_'):
+                        continue
+                                    
+                    # 安全地获取属性，避免触发延迟加载错误
+                    try:
+                        attr_value = getattr(module, attr_name, None)
+                                    
+                        # 只注册 APIRouter 实例，且避免重复注册
+                        if isinstance(attr_value, APIRouter):
+                            router_id = id(attr_value)
+                            if router_id not in seen_router_ids:
+                                seen_router_ids.add(router_id)
+                                container_router.include_router(attr_value)
+                    except Exception as attr_error:
+                        # 忽略单个属性访问错误
+                        log.debug(f"访问属性 {attr_name} 时出错：{attr_error!s}")
+                        continue
+            
             except Exception as e:
-                log.error(f"❌️ 处理模块 {module_path} 失败: {e!s}")
+                log.error(f"❌️ 处理模块 {module_path} 失败：{e!s}")
 
         # 将所有容器路由注册到根路由
         for prefix, container_router in sorted(container_routers.items()):
