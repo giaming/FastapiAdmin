@@ -47,15 +47,6 @@ const DatasetsAPI = {
     });
   },
 
-  // 批量启用/停用
-  batchDatasets(body: BatchType) {
-    return request<ApiResponse>({
-      url: `${API_PATH}/available/setting`,
-      method: "patch",
-      data: body,
-    });
-  },
-
   // 导出
   exportDatasets(query: DatasetsPageQuery) {
     return request<Blob>({
@@ -97,33 +88,35 @@ export interface DatasetsPageQuery extends PageQuery {
   name?: string;
   version?: string;
   source?: string;
-  total_images?: string;
-  created_by?: string;
-  updated_by?: string;
+  total_images?: number;
+  created_by?: number;
+  updated_by?: number;
   created_time?: string[];
   updated_time?: string[];
 }
 
 // 列表展示项
 export interface DatasetsTable extends BaseType {
-  dataset_id?: number;
+  id?: number;
   name?: string;
+  description?: string;
   version?: string;
   source?: string;
-  total_images?: string;
-  created_by?: string;
-  updated_by?: string;
-  created_by?: CommonType;
-  updated_by?: CommonType;
+  total_images?: number;
+  created_by?: number;
+  updated_by?: number;
+  created_time?: string;
+  updated_time?: string;
 }
 
 // 新增/修改/详情表单参数
 export interface DatasetsForm extends BaseFormType {
-  dataset_id?: number;
+  id?: number;
   name?: string;
+  description?: string;
   version?: string;
   source?: string;
-  total_images?: string;
-  created_by?: string;
-  updated_by?: string;
+  total_images?: number;
+  created_by?: number;
+  updated_by?: number;
 }

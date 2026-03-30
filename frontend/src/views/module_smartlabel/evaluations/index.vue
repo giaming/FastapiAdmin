@@ -13,7 +13,7 @@
           <el-input v-model="queryParams.dataset_id" placeholder="请输入数据集ID" clearable />
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable style="min-width: 120px;">
             <el-option label="待处理" value="pending" />
             <el-option label="运行中" value="running" />
             <el-option label="已完成" value="completed" />
@@ -101,13 +101,61 @@
     >
       <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
         <el-form-item label="项目ID" prop="project_id">
-          <el-input-number v-model="formData.project_id" :min="1" class="w-full" />
+          <el-select
+            v-model="formData.project_id"
+            class="w-full"
+            filterable
+            remote
+            clearable
+            :remote-method="fetchProjects"
+            :loading="projectLoading"
+            placeholder="请选择项目（可输入项目名称搜索）"
+          >
+            <el-option
+              v-for="item in projectOptions"
+              :key="item.id"
+              :label="`${item.name}`"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="用户ID" prop="user_id">
-          <el-input-number v-model="formData.user_id" :min="1" class="w-full" />
+          <el-select
+            v-model="formData.user_id"
+            class="w-full"
+            filterable
+            remote
+            clearable
+            :remote-method="fetchUsers"
+            :loading="userLoading"
+            placeholder="请选择用户（可输入用户名/姓名搜索）"
+          >
+            <el-option
+              v-for="item in userOptions"
+              :key="item.id"
+              :label="item.label"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="数据集ID" prop="dataset_id">
-          <el-input-number v-model="formData.dataset_id" :min="1" class="w-full" />
+          <el-select
+            v-model="formData.dataset_id"
+            class="w-full"
+            filterable
+            remote
+            clearable
+            :remote-method="fetchDatasets"
+            :loading="datasetLoading"
+            placeholder="请选择数据集（可输入数据集名称搜索）"
+          >
+            <el-option
+              v-for="item in datasetOptions"
+              :key="item.id"
+              :label="`${item.name}`"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="强制重跑" prop="force">
           <el-switch v-model="formData.force" />
@@ -158,8 +206,10 @@ import type { FormInstance, FormRules } from 'element-plus';
 import EvaluationsAPI, { 
   EvaluationPageQuery, 
   EvaluationTable, 
-  EvaluationTriggerForm 
 } from '@/api/module_smartlabel/evaluations';
+import ProjectsAPI, { type ProjectsTable } from '@/api/module_smartlabel/projects';
+import DatasetsAPI, { type DatasetsTable } from '@/api/module_smartlabel/datasets';
+import UserAPI, { type UserInfo } from '@/api/module_system/user';
 
 // 查询参数
 const queryParams = reactive<EvaluationPageQuery>({
@@ -179,18 +229,129 @@ const total = ref(0);
 const dialogVisible = ref(false);
 const submitLoading = ref(false);
 const formRef = ref<FormInstance>();
-const formData = reactive<EvaluationTriggerForm>({
-  project_id: 1,
-  user_id: 1,
-  dataset_id: 1,
-  force: false
+const formData = reactive<{
+  project_id: number | undefined;
+  user_id: number | undefined;
+  dataset_id: number | undefined;
+  force: boolean;
+}>({
+  project_id: undefined,
+  user_id: undefined,
+  dataset_id: undefined,
+  force: false,
 });
 
 const rules = reactive<FormRules>({
-  project_id: [{ required: true, message: '请输入项目ID', trigger: 'blur' }],
-  user_id: [{ required: true, message: '请输入用户ID', trigger: 'blur' }],
-  dataset_id: [{ required: true, message: '请输入数据集ID', trigger: 'blur' }]
+  project_id: [{ required: true, message: '请选择项目', trigger: 'change' }],
+  user_id: [{ required: true, message: '请选择用户', trigger: 'change' }],
+  dataset_id: [{ required: true, message: '请选择数据集', trigger: 'change' }]
 });
+
+type IdNameOption = { id: number; name: string };
+type UserOption = { id: number; label: string };
+
+const projectLoading = ref(false);
+const datasetLoading = ref(false);
+const userLoading = ref(false);
+
+const projectOptions = ref<IdNameOption[]>([]);
+const datasetOptions = ref<IdNameOption[]>([]);
+const userOptions = ref<UserOption[]>([]);
+
+const fetchProjects = async (keyword: string) => {
+  projectLoading.value = true;
+  try {
+    const res = await ProjectsAPI.listProjects({
+      page_no: 1,
+      page_size: 50,
+      name: keyword?.trim() || undefined,
+    });
+    projectOptions.value = ((res.data.data?.items || []) as ProjectsTable[])
+      .map((p) => ({ id: Number(p.id), name: String(p.name ?? '') }))
+      .filter((p) => Number.isFinite(p.id) && p.name);
+  } finally {
+    projectLoading.value = false;
+  }
+};
+
+const fetchDatasets = async (keyword: string) => {
+  datasetLoading.value = true;
+  try {
+    const res = await DatasetsAPI.listDatasets({
+      page_no: 1,
+      page_size: 50,
+      name: keyword?.trim() || undefined,
+    } as any);
+    datasetOptions.value = ((res.data.data?.items || []) as DatasetsTable[])
+      .map((d) => ({ id: Number(d.id), name: String(d.name ?? '') }))
+      .filter((d) => Number.isFinite(d.id) && d.name);
+  } finally {
+    datasetLoading.value = false;
+  }
+};
+
+const fetchUsers = async (keyword: string) => {
+  userLoading.value = true;
+  try {
+    const q = keyword?.trim() || undefined;
+    const res = await UserAPI.listUser({
+      page_no: 1,
+      page_size: 50,
+      name: q,
+      username: q,
+      status: '0',
+    } as any);
+    userOptions.value = ((res.data.data?.items || []) as UserInfo[])
+      .map((u) => {
+        const id = Number(u.id);
+        const username = u.username ? String(u.username) : '';
+        const name = u.name ? String(u.name) : '';
+        const labelBase = name || username || `用户 ${id}`;
+        const label = `${labelBase}${username && name && username !== name ? `（${username}）` : ''}`;
+        return { id, label };
+      })
+      .filter((u) => Number.isFinite(u.id));
+  } finally {
+    userLoading.value = false;
+  }
+};
+
+const ensureProjectOption = async (id?: number) => {
+  if (!id || projectOptions.value.some((o) => o.id === id)) return;
+  const res = await ProjectsAPI.detailProjects(id);
+  const p: any = res.data.data;
+  if (!p) return;
+  projectOptions.value.unshift({ id: Number(p.id), name: String(p.name ?? '') });
+};
+
+const ensureDatasetOption = async (id?: number) => {
+  if (!id || datasetOptions.value.some((o) => o.id === id)) return;
+  const res = await DatasetsAPI.detailDatasets(id);
+  const d: any = res.data.data;
+  if (!d) return;
+  datasetOptions.value.unshift({ id: Number(d.id), name: String(d.name ?? '') });
+};
+
+const ensureUserOption = async (id?: number) => {
+  if (!id || userOptions.value.some((o) => o.id === id)) return;
+  const res = await UserAPI.detailUser(id);
+  const u: any = res.data.data;
+  if (!u) return;
+  const username = u.username ? String(u.username) : '';
+  const name = u.name ? String(u.name) : '';
+  const labelBase = name || username || `用户 ${id}`;
+  const label = `${labelBase}${username && name && username !== name ? `（${username}）` : ''}`;
+  userOptions.value.unshift({ id: Number(u.id), label });
+};
+
+const initTriggerOptions = async () => {
+  await Promise.all([fetchProjects(''), fetchDatasets(''), fetchUsers('')]);
+  await Promise.all([
+    ensureProjectOption(formData.project_id),
+    ensureDatasetOption(formData.dataset_id),
+    ensureUserOption(formData.user_id),
+  ]);
+};
 
 // 详情相关
 const detailVisible = ref(false);
@@ -201,10 +362,8 @@ const getList = async () => {
   loading.value = true;
   try {
     const res = await EvaluationsAPI.getEvaluationList(queryParams);
-    if (res.code === 200 && res.data) {
-      tableData.value = res.data.list;
-      total.value = res.data.total;
-    }
+    tableData.value = res.data.data?.items || [];
+    total.value = res.data.data?.total || 0;
   } catch (error) {
     console.error(error);
   } finally {
@@ -228,12 +387,13 @@ const resetQuery = () => {
 };
 
 // 状态样式
-const getStatusType = (status: string) => {
-  const map: Record<string, string> = {
+type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger';
+const getStatusType = (status: string): TagType => {
+  const map: Record<string, TagType> = {
     pending: 'info',
     running: 'warning',
     completed: 'success',
-    failed: 'danger'
+    failed: 'danger',
   };
   return map[status] || 'info';
 };
@@ -241,6 +401,11 @@ const getStatusType = (status: string) => {
 // 新增触发
 const handleAdd = () => {
   dialogVisible.value = true;
+  formData.project_id = undefined;
+  formData.user_id = undefined;
+  formData.dataset_id = undefined;
+  formData.force = false;
+  initTriggerOptions();
 };
 
 // 重跑
@@ -250,16 +415,15 @@ const handleRetry = (row: EvaluationTable) => {
   formData.dataset_id = row.dataset_id;
   formData.force = true;
   dialogVisible.value = true;
+  initTriggerOptions();
 };
 
 // 查看详情
 const handleDetail = async (row: EvaluationTable) => {
   try {
     const res = await EvaluationsAPI.getEvaluationDetail(row.id);
-    if (res.code === 200 && res.data) {
-      currentDetail.value = res.data;
-      detailVisible.value = true;
-    }
+    currentDetail.value = res.data.data;
+    detailVisible.value = true;
   } catch (error) {
     console.error(error);
   }
@@ -273,14 +437,17 @@ const submitForm = async () => {
     if (valid) {
       submitLoading.value = true;
       try {
-        const res = await EvaluationsAPI.triggerEvaluation(formData);
-        if (res.code === 200) {
-          ElMessage.success('触发评估成功');
-          dialogVisible.value = false;
-          getList();
-        }
+        await EvaluationsAPI.triggerEvaluation({
+          project_id: formData.project_id!,
+          user_id: formData.user_id!,
+          dataset_id: formData.dataset_id!,
+          force: formData.force,
+        });
+        dialogVisible.value = false;
+        getList();
       } catch (error) {
         console.error(error);
+        ElMessage.error('触发评估失败');
       } finally {
         submitLoading.value = false;
       }

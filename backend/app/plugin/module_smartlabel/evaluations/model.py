@@ -23,7 +23,7 @@ class DatasetImageModel(MappedBase):
     __tablename__: str = "sl_dataset_images"
     __table_args__: dict[str, str] = {"comment": "数据集图像表"}
 
-    dataset_image_id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=True, comment="数据集图像ID")
+    dataset_image_id: Mapped[int] = mapped_column("id", BIGINT, primary_key=True, autoincrement=True, comment="数据集图像ID")
     dataset_id: Mapped[int] = mapped_column(BIGINT, nullable=False, index=True, comment="所属数据集ID")
     relative_path: Mapped[str] = mapped_column(String(512), nullable=False, comment="相对路径")
     file_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True, comment="文件哈希")
@@ -121,7 +121,7 @@ class ImageModel(MappedBase):
     __tablename__: str = "sl_images"
     __table_args__: dict[str, str] = {"comment": "项目图像表"}
 
-    image_id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=True, comment="主键ID")
+    image_id: Mapped[int] = mapped_column("id", BIGINT, primary_key=True, autoincrement=True, comment="主键ID")
     project_id: Mapped[int] = mapped_column(BIGINT, nullable=False, index=True, comment="所属项目ID")
     absolute_path: Mapped[str] = mapped_column(String(512), nullable=False, comment="绝对路径")
     width: Mapped[int | None] = mapped_column(Integer, nullable=True, comment="宽度")
@@ -132,7 +132,7 @@ class AnnotationModel(MappedBase):
     __tablename__: str = "sl_annotations"
     __table_args__: dict[str, str] = {"comment": "学员标注表"}
 
-    annotation_id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=True, comment="主键ID")
+    annotation_id: Mapped[int] = mapped_column("id", BIGINT, primary_key=True, autoincrement=True, comment="主键ID")
     image_id: Mapped[int | None] = mapped_column(BIGINT, nullable=True, index=True, comment="图像ID")
     user_id: Mapped[int | None] = mapped_column(BIGINT, nullable=True, index=True, comment="用户ID")
     type: Mapped[str] = mapped_column(String(64), nullable=False, comment="标注类型")

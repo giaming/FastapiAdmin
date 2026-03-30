@@ -56,7 +56,7 @@ async def trigger_evaluation_controller(
                 id=job_id,
                 name=f"SmartLabel 评估 ({evaluation_id})",
                 jobstore="default",
-                executor="threadpool",
+                executor="default",
                 max_instances=1,
                 replace_existing=True,
             )

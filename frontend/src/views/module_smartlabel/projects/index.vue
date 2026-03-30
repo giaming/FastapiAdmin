@@ -44,7 +44,7 @@
               />
             </el-form-item>
             <el-form-item label="所有者" prop="owner_id">
-              <el-input v-model="queryFormData.owner_id" placeholder="请输入所有者" clearable />
+              <el-input-number v-model="queryFormData.owner_id" :min="0" controls-position="right" />
             </el-form-item>
             <!-- 查询、重置、展开/收起按钮 -->
             <el-form-item>
@@ -113,7 +113,7 @@
               </el-button>
             </el-col>
             <el-col :span="1.5">
-              <el-dropdown v-hasPerm="['module_smartlabel:projects:batch']" trigger="click">
+              <el-dropdown v-hasPerm="['module_smartlabel:projects:patch']" trigger="click">
                 <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">
                   更多
                 </el-button>

@@ -210,12 +210,13 @@ class ProjectsService:
             '项目描述': 'description',
             '项目类型': 'setup_type',
             '标注类型配置': 'annotation_style_config',
-            '创建时间': 'created_time',
-            '更新时间': 'updated_time',
             '所有者': 'owner_id',
         }
 
         try:
+            def normalize(value):
+                return None if pd.isna(value) else value
+
             # 读取Excel文件
             contents = await file.read()
             df = pd.read_excel(io.BytesIO(contents))
@@ -242,20 +243,26 @@ class ProjectsService:
                 count += 1
                 try:
                     data = {
-                        "id": row['id'],
-                        "name": row['name'],
-                        "description": row['description'],
-                        "setup_type": row['setup_type'],
-                        "annotation_style_config": row['annotation_style_config'],
-                        "created_time": row['created_time'],
-                        "updated_time": row['updated_time'],
-                        "owner_id": row['owner_id'],
+                        "id": normalize(row.get('id')),
+                        "name": normalize(row.get('name')),
+                        "description": normalize(row.get('description')),
+                        "setup_type": normalize(row.get('setup_type')),
+                        "annotation_style_config": normalize(row.get('annotation_style_config')),
+                        "owner_id": normalize(row.get('owner_id')),
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = ProjectsCreateSchema.model_validate(data)
                     
                     # 检查唯一性约束
                     
+                    if update_support and create_schema.id is not None:
+                        exists = await ProjectsCRUD(auth).get_by_id_projects_crud(id=create_schema.id)
+                        if exists:
+                            update_schema = ProjectsUpdateSchema.model_validate(create_schema.model_dump())
+                            await ProjectsCRUD(auth).update_projects_crud(id=create_schema.id, data=update_schema)
+                            success_count += 1
+                            continue
+
                     await ProjectsCRUD(auth).create_projects_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -285,8 +292,6 @@ class ProjectsService:
             '项目描述',
             '项目类型',
             '标注类型配置',
-            '创建时间',
-            '更新时间',
             '所有者',
         ]
         selector_header_list = []

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
+from fastapi import APIRouter, Depends, UploadFile, Body, Path
 from fastapi.responses import StreamingResponse, JSONResponse
 
 from app.common.response import SuccessResponse, StreamResponse
@@ -23,7 +23,7 @@ ProjectsRouter = APIRouter(prefix='/projects', tags=["项目管理模块"])
 )
 async def get_projects_detail_controller(
     id: int = Path(..., description="ID"),
-    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:projects:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:projects:detail"]))
 ) -> JSONResponse:
     """
     获取项目管理详情接口

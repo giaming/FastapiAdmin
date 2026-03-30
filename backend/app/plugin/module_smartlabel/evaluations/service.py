@@ -21,8 +21,12 @@ from .schema import EvaluationCreateSchema, EvaluationTriggerSchema
 class SmartLabelEvaluationService:
     def __init__(self, auth: AuthSchema | None = None) -> None:
         self.auth = auth
+        # 始终创建 CRUD 实例，即使 auth 为 None（用于定时任务等场景）
         if auth:
             self.eval_crud = EvaluationCRUD(auth=auth)
+        else:
+            # 当 auth 为 None 时，使用一个临时的 auth 对象或者延迟初始化
+            self.eval_crud = None
 
     async def trigger_evaluation(self, schema: EvaluationTriggerSchema) -> dict:
         if not schema.force:
@@ -56,6 +60,11 @@ class SmartLabelEvaluationService:
     async def run_evaluation_job(self, evaluation_id: int) -> None:
         async with async_db_session() as session:
             try:
+                # 如果没有 auth，需要创建一个临时的 auth 对象用于 CRUD 操作
+                if not self.auth:
+                    temp_auth = AuthSchema(db=session)
+                    self.eval_crud = EvaluationCRUD(auth=temp_auth)
+                
                 stmt = select(EvaluationModel).where(EvaluationModel.id == evaluation_id)
                 result = await session.execute(stmt)
                 eval_record = result.scalars().first()

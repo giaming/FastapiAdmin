@@ -5,7 +5,6 @@ import pandas as pd
 from fastapi import UploadFile
 
 from app.api.v1.module_system.auth.schema import AuthSchema
-from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
@@ -96,6 +95,10 @@ class DatasetsService:
         返回:
         - dict - 创建结果
         """
+        if data.created_by is None:
+            data.created_by = auth.user.id
+        if data.updated_by is None:
+            data.updated_by = auth.user.id
         obj = await DatasetsCRUD(auth).create_datasets_crud(data=data)
         return DatasetsOutSchema.model_validate(obj).model_dump()
     
@@ -119,6 +122,8 @@ class DatasetsService:
         
         # 检查唯一性约束
             
+        if data.updated_by is None:
+            data.updated_by = auth.user.id
         obj = await DatasetsCRUD(auth).update_datasets_crud(id=id, data=data)
         return DatasetsOutSchema.model_validate(obj).model_dump()
     
@@ -143,19 +148,6 @@ class DatasetsService:
         await DatasetsCRUD(auth).delete_datasets_crud(ids=ids)
     
     @classmethod
-    async def set_available_datasets_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
-        """
-        批量设置状态
-        
-        参数:
-        - auth: AuthSchema - 认证信息
-        - data: BatchSetAvailable - 批量设置状态数据
-        
-        返回:
-        - None
-        """
-        await DatasetsCRUD(auth).set_available_datasets_crud(ids=data.ids, status=data.status)
-    
     @classmethod
     async def batch_export_datasets_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -168,7 +160,7 @@ class DatasetsService:
         - bytes - 导出的Excel文件内容
         """
         mapping_dict = {
-            'dataset_id': '数据集ID',
+            'id': '数据集ID',
             'name': '数据集名称',
             'description': '数据集描述',
             'version': '数据集版本号',
@@ -179,19 +171,7 @@ class DatasetsService:
             'created_time': '创建时间',
             'updated_time': '更新时间',
         }
-        # 复制数据并转换状态
-        data = obj_list.copy()
-        for item in data:
-            # 处理状态
-            item["status"] = "启用" if item.get("status") == "0" else "停用"
-            # 处理创建者
-            creator_info = item.get("created_id")
-            if isinstance(creator_info, dict):
-                item["created_id"] = creator_info.get("name", "未知")
-            else:
-                item["created_id"] = "未知"
-
-        return ExcelUtil.export_list2excel(list_data=data, mapping_dict=mapping_dict)
+        return ExcelUtil.export_list2excel(list_data=obj_list, mapping_dict=mapping_dict)
 
     @classmethod
     async def batch_import_datasets_service(cls, auth: AuthSchema, file: UploadFile, update_support: bool = False) -> str:
@@ -207,7 +187,7 @@ class DatasetsService:
         - str - 导入结果信息
         """
         header_dict = {
-            '数据集ID': 'dataset_id',
+            '数据集ID': 'id',
             '数据集名称': 'name',
             '数据集描述': 'description',
             '数据集版本号': 'version',
@@ -215,11 +195,12 @@ class DatasetsService:
             '总共图片数': 'total_images',
             '创建者': 'created_by',
             '更新者': 'updated_by',
-            '创建时间': 'created_time',
-            '更新时间': 'updated_time',
         }
 
         try:
+            def normalize(value):
+                return None if pd.isna(value) else value
+
             # 读取Excel文件
             contents = await file.read()
             df = pd.read_excel(io.BytesIO(contents))
@@ -246,22 +227,28 @@ class DatasetsService:
                 count += 1
                 try:
                     data = {
-                        "dataset_id": row['dataset_id'],
+                        "id": normalize(row.get('id')),
                         "name": row['name'],
-                        "description": row['description'],
-                        "version": row['version'],
-                        "source": row['source'],
-                        "total_images": row['total_images'],
-                        "created_by": row['created_by'],
-                        "updated_by": row['updated_by'],
-                        "created_time": row['created_time'],
-                        "updated_time": row['updated_time'],
+                        "description": normalize(row.get('description')),
+                        "version": normalize(row.get('version')),
+                        "source": normalize(row.get('source')),
+                        "total_images": normalize(row.get('total_images')),
+                        "created_by": normalize(row.get('created_by')),
+                        "updated_by": normalize(row.get('updated_by')),
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = DatasetsCreateSchema.model_validate(data)
                     
                     # 检查唯一性约束
                     
+                    if update_support and create_schema.id is not None:
+                        exists = await DatasetsCRUD(auth).get_by_id_datasets_crud(id=create_schema.id)
+                        if exists:
+                            update_schema = DatasetsUpdateSchema.model_validate(create_schema.model_dump())
+                            await DatasetsCRUD(auth).update_datasets_crud(id=create_schema.id, data=update_schema)
+                            success_count += 1
+                            continue
+
                     await DatasetsCRUD(auth).create_datasets_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -294,8 +281,6 @@ class DatasetsService:
             '总共图片数',
             '创建者',
             '更新者',
-            '创建时间',
-            '更新时间',
         ]
         selector_header_list = []
         option_list = []

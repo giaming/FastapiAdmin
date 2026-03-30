@@ -35,7 +35,7 @@ class EvaluationCRUD(CRUDBase[EvaluationModel, EvaluationCreateSchema, Evaluatio
             self.model.status.in_(status_list)
         ).order_by(self.model.id.desc())
         
-        result = await self.db.execute(stmt)
+        result = await self.auth.db.execute(stmt)
         return result.scalars().first()
 
     async def list_crud(

@@ -84,19 +84,6 @@ class DatasetsCRUD(CRUDBase[DatasetsModel, DatasetsCreateSchema, DatasetsUpdateS
         """
         return await self.delete(ids=ids)
     
-    async def set_available_datasets_crud(self, ids: list[int], status: str) -> None:
-        """
-        批量设置可用状态
-        
-        参数:
-        - ids (list[int]): 对象ID列表
-        - status (str): 可用状态
-        
-        返回:
-        - None
-        """
-        return await self.set(ids=ids, status=status)
-    
     async def page_datasets_crud(self, offset: int, limit: int, order_by: list[dict] | None = None, search: dict | None = None, preload: list | None = None) -> dict:
         """
         分页查询

@@ -61,7 +61,7 @@ const ProjectsAPI = {
     return request<Blob>({
       url: `${API_PATH}/export`,
       method: "post",
-      data: query,
+      params: query,
       responseType: "blob",
     });
   },
@@ -97,17 +97,19 @@ export interface ProjectsPageQuery extends PageQuery {
   name?: string;
   setup_type?: string;
   annotation_style_config?: string;
-  owner_id?: string;
+  owner_id?: number;
   created_time?: string[];
   updated_time?: string[];
+  status?: string;
 }
 
 // 列表展示项
 export interface ProjectsTable extends BaseType {
   name?: string;
+  description?: string;
   setup_type?: string;
   annotation_style_config?: string;
-  owner_id?: string;
+  owner_id?: number;
   created_by?: CommonType;
   updated_by?: CommonType;
 }
@@ -115,7 +117,8 @@ export interface ProjectsTable extends BaseType {
 // 新增/修改/详情表单参数
 export interface ProjectsForm extends BaseFormType {
   name?: string;
+  description?: string;
   setup_type?: string;
   annotation_style_config?: string;
-  owner_id?: string;
+  owner_id?: number;
 }

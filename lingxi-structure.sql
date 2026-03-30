@@ -282,7 +282,7 @@ CREATE TABLE `sl_dataset_images` (
 -- ----------------------------
 DROP TABLE IF EXISTS `sl_datasets`;
 CREATE TABLE `sl_datasets` (
-  `dataset_id` bigint NOT NULL AUTO_INCREMENT,
+  `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text,
   `version` varchar(64) DEFAULT NULL,

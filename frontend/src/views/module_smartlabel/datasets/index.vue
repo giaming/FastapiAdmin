@@ -32,13 +32,39 @@
               <el-input v-model="queryFormData.source" placeholder="请输入数据集来源" clearable />
             </el-form-item>
             <el-form-item label="总共图片数" prop="total_images">
-              <el-input v-model="queryFormData.total_images" placeholder="请输入总共图片数" clearable />
+              <el-input-number v-model="queryFormData.total_images" :min="0" controls-position="right" />
             </el-form-item>
             <el-form-item label="创建者" prop="created_by">
-              <el-input v-model="queryFormData.created_by" placeholder="请输入创建者" clearable />
+              <el-select
+                v-model="queryFormData.created_by"
+                placeholder="请选择创建者"
+                clearable
+                filterable
+                style="width: 240px"
+              >
+                <el-option
+                  v-for="user in userOptions"
+                  :key="user.id"
+                  :label="user.name"
+                  :value="user.id"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="更新者" prop="updated_by">
-              <el-input v-model="queryFormData.updated_by" placeholder="请输入更新者" clearable />
+              <el-select
+                v-model="queryFormData.updated_by"
+                placeholder="请选择更新者"
+                clearable
+                filterable
+                style="width: 240px"
+              >
+                <el-option
+                  v-for="user in userOptions"
+                  :key="user.id"
+                  :label="user.name"
+                  :value="user.id"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item v-if="isExpand" prop="created_time" label="创建时间">
               <DatePicker
@@ -119,21 +145,7 @@
               </el-button>
             </el-col>
             <el-col :span="1.5">
-              <el-dropdown v-hasPerm="['module_smartlabel:datasets:batch']" trigger="click">
-                <el-button type="default" :disabled="selectIds.length === 0" icon="ArrowDown">
-                  更多
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item :icon="Check" @click="handleMoreClick('0')">
-                      批量启用
-                    </el-dropdown-item>
-                    <el-dropdown-item :icon="CircleClose" @click="handleMoreClick('1')">
-                      批量停用
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+              <span />
             </el-col>
           </el-row>
         </div>
@@ -355,7 +367,7 @@
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
           <el-descriptions-item label="数据集ID" :span="2">
-            {{ detailFormData.dataset_id }}
+            {{ detailFormData.id }}
           </el-descriptions-item>
           <el-descriptions-item label="数据集名称" :span="2">
             {{ detailFormData.name }}
@@ -397,8 +409,8 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="数据集ID" prop="dataset_id" :required="false">
-            <el-input v-model="formData.dataset_id" placeholder="请输入数据集ID" />
+          <el-form-item label="数据集 ID" prop="id" :required="false" v-if="dialogVisible.type === 'update'">
+            <el-input v-model="formData.id" placeholder="数据集 ID" disabled />
           </el-form-item>
           <el-form-item label="数据集名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入数据集名称" />
@@ -420,13 +432,39 @@
             <el-input v-model="formData.source" placeholder="请输入数据集来源" />
           </el-form-item>
           <el-form-item label="总共图片数" prop="total_images" :required="false">
-            <el-input v-model="formData.total_images" placeholder="请输入总共图片数" />
+            <el-input-number v-model="formData.total_images" :min="0" controls-position="right" />
           </el-form-item>
           <el-form-item label="创建者" prop="created_by" :required="false">
-            <el-input v-model="formData.created_by" placeholder="请输入创建者" />
+            <el-select
+              v-model="formData.created_by"
+              placeholder="请选择创建者"
+              clearable
+              filterable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="user in userOptions"
+                :key="user.id"
+                :label="user.name"
+                :value="user.id"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="更新者" prop="updated_by" :required="false">
-            <el-input v-model="formData.updated_by" placeholder="请输入更新者" />
+            <el-select
+              v-model="formData.updated_by"
+              placeholder="请选择更新者"
+              clearable
+              filterable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="user in userOptions"
+                :key="user.id"
+                :label="user.name"
+                :value="user.id"
+              />
+            </el-select>
           </el-form-item>
         </el-form>
       </template>
@@ -470,7 +508,7 @@ defineOptions({
 
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose } from "@element-plus/icons-vue";
+import { QuestionFilled, ArrowUp, ArrowDown } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
 import { useDictStore } from "@/store";
 import { ResultEnum } from "@/enums/api/result.enum";
@@ -483,6 +521,7 @@ import DatasetsAPI, {
   DatasetsTable,
   DatasetsForm,
 } from "@/api/module_smartlabel/datasets";
+import { UserAPI } from "@/api/module_system/user";
 
 const visible = ref(true);
 const queryFormRef = ref();
@@ -493,6 +532,9 @@ const selectionRows = ref<DatasetsTable[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
+
+// 用户选项列表
+const userOptions = ref<any[]>([]);
 
 // 分页表单
 const pageTableData = ref<DatasetsTable[]>([]);
@@ -533,7 +575,6 @@ const curdContentConfig = {
   importTemplate: () => DatasetsAPI.downloadTemplateDatasets(),
   exportsAction: async (params: any) => {
     const query: any = { ...params };
-    query.status = "0";
     query.page_no = 1;
     query.page_size = 9999;
     const all: any[] = [];
@@ -576,6 +617,39 @@ function handleUpdatedDateRangeChange(range: [Date, Date]) {
   }
 }
 
+// 加载用户列表
+async function loadUserOptions() {
+  try {
+    // 分页加载所有用户（每页 100 条）
+    const allUsers: any[] = [];
+    let page = 1;
+    const pageSize = 100;
+    
+    while (true) {
+      const query: any = { page_no: page, page_size: pageSize };
+      // 只查询启用状态的用户
+      query.status = '0';
+      console.log('[数据集管理] 开始加载用户列表，查询参数:', query);
+      
+      const response = await UserAPI.listUser(query);
+      const users = response.data.data.items || [];
+      console.log('[数据集管理] 第', page, '页用户响应:', users);
+      allUsers.push(...users);
+      
+      // 如果返回的数量小于分页大小，说明已经加载完所有用户
+      if (users.length < pageSize) {
+        break;
+      }
+      page++;
+    }
+    
+    userOptions.value = allUsers;
+    console.log('[数据集管理] 加载完成，用户选项数量:', userOptions.value.length, '用户选项:', userOptions.value);
+  } catch (error: any) {
+    console.error('[数据集管理] 加载用户列表失败:', error);
+  }
+}
+
 // 分页查询参数
 const queryFormData = reactive<DatasetsPageQuery>({
   page_no: 1,
@@ -592,7 +666,7 @@ const queryFormData = reactive<DatasetsPageQuery>({
 
 // 编辑表单
 const formData = reactive<DatasetsForm>({
-  dataset_id: undefined,
+  id: undefined,
   name: undefined,
   description: undefined,
   version: undefined,
@@ -601,6 +675,17 @@ const formData = reactive<DatasetsForm>({
   created_by: undefined,
   updated_by: undefined,
 });
+
+// 定义初始表单数据常量
+const initialFormData: Omit<DatasetsForm, 'id'> = {
+  name: undefined,
+  description: undefined,
+  version: undefined,
+  source: undefined,
+  total_images: undefined,
+  created_by: undefined,
+  updated_by: undefined,
+};
 
 // 字典仓库与需要加载的字典类型
 const dictStore = useDictStore();
@@ -616,16 +701,14 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  dataset_id: [{ required: false, message: "请输入数据集ID", trigger: "blur" }],
-  name: [{ required: false, message: "请输入数据集名称", trigger: "blur" }],
+  id: [{ required: false, message: "请输入数据集ID", trigger: "blur" }],
+  name: [{ required: true, message: "请输入数据集名称", trigger: "blur" }],
   description: [{ required: true, message: "请输入数据集描述", trigger: "blur" }],
   version: [{ required: true, message: "请输入数据集版本号", trigger: "blur" }],
   source: [{ required: true, message: "请输入数据集来源", trigger: "blur" }],
-  total_images: [{ required: true, message: "请输入总共图片数", trigger: "blur" }],
-  created_by: [{ required: true, message: "请输入创建者", trigger: "blur" }],
-  updated_by: [{ required: true, message: "请输入更新者", trigger: "blur" }],
-  created_time: [{ required: true, message: "请输入创建时间", trigger: "blur" }],
-  updated_time: [{ required: true, message: "请输入更新时间", trigger: "blur" }],
+  total_images: [{ required: false, message: "请输入总共图片数", trigger: "blur" }],
+  created_by: [{ required: false, message: "请输入创建者", trigger: "blur" }],
+  updated_by: [{ required: false, message: "请输入更新者", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -687,26 +770,15 @@ async function handleResetQuery() {
   loadingData();
 }
 
-// 定义初始表单数据常量
-const initialFormData: DatasetsForm = {
-  dataset_id: undefined,
-  name: undefined,
-  description: undefined,
-  version: undefined,
-  source: undefined,
-  total_images: undefined,
-  created_by: undefined,
-  updated_by: undefined,
-};
-
 // 重置表单
 async function resetForm() {
   if (dataFormRef.value) {
     dataFormRef.value.resetFields();
     dataFormRef.value.clearValidate();
   }
-  // 完全重置 formData 为初始状态
+  // 完全重置 formData 为初始状态（不含 id）
   Object.assign(formData, initialFormData);
+  formData.id = undefined;
 }
 
 // 行复选框选中项变化
@@ -734,15 +806,10 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增Datasets";
-    formData.dataset_id = undefined;
-    formData.name = undefined;
-    formData.description = undefined;
-    formData.version = undefined;
-    formData.source = undefined;
-    formData.total_images = undefined;
-    formData.created_by = undefined;
-    formData.updated_by = undefined;
+    dialogVisible.title = "新增数据集";
+    // 新增时只需要重置表单字段，id 保持 undefined
+    Object.assign(formData, initialFormData);
+    formData.id = undefined;
   }
   dialogVisible.visible = true;
 }
@@ -753,8 +820,12 @@ async function handleSubmit() {
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
+      // 根据弹窗传入的参数 (deatil\create\update) 判断走什么逻辑
       const submitData = { ...formData };
+      // 新增时不需要提交 id 字段
+      if (dialogVisible.type === 'create') {
+        delete submitData.id;
+      }
       const id = formData.id;
       if (id) {
         try {
@@ -808,31 +879,6 @@ async function handleDelete(ids: number[]) {
     });
 }
 
-// 批量启用/停用
-async function handleMoreClick(status: string) {
-  if (selectIds.value.length) {
-    ElMessageBox.confirm(`确认${status === "0" ? "启用" : "停用"}该项数据?`, "警告", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    })
-      .then(async () => {
-        try {
-          loading.value = true;
-          await DatasetsAPI.batchDatasets({ ids: selectIds.value, status });
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
-      })
-      .catch(() => {
-        ElMessageBox.close();
-      });
-  }
-}
-
 // 处理上传
 const handleUpload = async (formData: FormData) => {
   try {
@@ -855,6 +901,8 @@ onMounted(async () => {
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
+  // 加载用户列表
+  await loadUserOptions();
   loadingData();
 });
 </script>

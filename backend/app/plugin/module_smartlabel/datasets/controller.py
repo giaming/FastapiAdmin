@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
+from fastapi import APIRouter, Depends, UploadFile, Body, Path
 from fastapi.responses import StreamingResponse, JSONResponse
 
 from app.common.response import SuccessResponse, StreamResponse
@@ -9,7 +9,6 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_params import PaginationQueryParam
 from app.utils.common_util import bytes2file_response
 from app.core.logger import log
-from app.core.base_schema import BatchSetAvailable
 
 from .service import DatasetsService
 from .schema import DatasetsCreateSchema, DatasetsUpdateSchema, DatasetsQueryParam
@@ -23,7 +22,7 @@ DatasetsRouter = APIRouter(prefix='/datasets', tags=["数据集管理模块"])
 )
 async def get_datasets_detail_controller(
     id: int = Path(..., description="ID"),
-    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:datasets:query"]))
+    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:datasets:detail"]))
 ) -> JSONResponse:
     """
     获取数据集管理详情接口
@@ -142,29 +141,6 @@ async def delete_datasets_controller(
     return SuccessResponse(msg="删除数据集管理成功")
 
 @DatasetsRouter.patch(
-    "/available/setting",
-    summary="批量修改数据集管理状态",
-    description="批量修改数据集管理状态"
-)
-async def batch_set_available_datasets_controller(
-    data: BatchSetAvailable,
-    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:datasets:patch"]))
-) -> JSONResponse:
-    """
-    批量修改数据集管理状态接口
-    
-    参数:
-    - data: BatchSetAvailable - 批量修改状态数据
-    - auth: AuthSchema - 认证信息
-    
-    返回:
-    - JSONResponse - 包含批量修改数据集管理状态结果的JSON响应
-    """
-    await DatasetsService.set_available_datasets_service(auth=auth, data=data)
-    log.info(f"批量修改数据集管理状态成功: {data.ids}")
-    return SuccessResponse(msg="批量修改数据集管理状态成功")
-
-@DatasetsRouter.post(
     '/export',
     summary="导出数据集管理",
     description="导出数据集管理"
