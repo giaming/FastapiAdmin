@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path
+from fastapi import APIRouter, Body, Depends, File, Form, Path, UploadFile
 from fastapi.responses import StreamingResponse, JSONResponse
 
 from app.common.response import SuccessResponse, StreamResponse
@@ -91,6 +91,35 @@ async def create_datasets_controller(
     result_dict = await DatasetsService.create_datasets_service(auth=auth, data=data)
     log.info("创建数据集管理成功")
     return SuccessResponse(data=result_dict, msg="创建数据集管理成功")
+
+
+@DatasetsRouter.post(
+    "/import/coco",
+    summary="上传COCO数据集并创建",
+    description="上传COCO数据集并创建（包含图片zip与annotations.json）",
+)
+async def import_coco_datasets_controller(
+    name: str = Form(..., description="数据集名称"),
+    description: str | None = Form(None, description="数据集描述"),
+    version: str | None = Form(None, description="数据集版本号"),
+    source: str | None = Form("coco", description="数据集来源"),
+    split_type: str | None = Form(None, description="数据划分：train/val/test"),
+    images_zip: UploadFile = File(..., description="图片zip包"),
+    annotations_json: UploadFile = File(..., description="COCO标注json文件"),
+    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:datasets:create"])),
+) -> JSONResponse:
+    result_dict = await DatasetsService.import_coco_dataset_service(
+        auth=auth,
+        name=name,
+        description=description,
+        version=version,
+        source=source,
+        split_type=split_type,
+        images_zip=images_zip,
+        annotations_json=annotations_json,
+    )
+    log.info("上传COCO数据集并创建成功")
+    return SuccessResponse(data=result_dict, msg="上传COCO数据集并创建成功")
 
 @DatasetsRouter.put(
     "/update/{id}",

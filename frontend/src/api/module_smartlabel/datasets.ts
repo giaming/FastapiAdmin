@@ -75,6 +75,15 @@ const DatasetsAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
+  importCocoDataset(body: FormData) {
+    return request<ApiResponse<DatasetsTable>>({
+      url: `${API_PATH}/import/coco`,
+      method: "post",
+      data: body,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };
 
 export default DatasetsAPI;

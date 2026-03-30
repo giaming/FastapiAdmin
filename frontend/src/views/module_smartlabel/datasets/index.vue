@@ -31,9 +31,6 @@
             <el-form-item label="数据集来源" prop="source">
               <el-input v-model="queryFormData.source" placeholder="请输入数据集来源" clearable />
             </el-form-item>
-            <el-form-item label="总共图片数" prop="total_images">
-              <el-input-number v-model="queryFormData.total_images" :min="0" controls-position="right" />
-            </el-form-item>
             <el-form-item label="创建者" prop="created_by">
               <el-select
                 v-model="queryFormData.created_by"
@@ -409,63 +406,123 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="数据集 ID" prop="id" :required="false" v-if="dialogVisible.type === 'update'">
-            <el-input v-model="formData.id" placeholder="数据集 ID" disabled />
-          </el-form-item>
-          <el-form-item label="数据集名称" prop="name" :required="false">
-            <el-input v-model="formData.name" placeholder="请输入数据集名称" />
-          </el-form-item>
-          <el-form-item label="描述" prop="description">
-            <el-input
-              v-model="formData.description"
-              :rows="4"
-              :maxlength="100"
-              show-word-limit
-              type="textarea"
-              placeholder="请输入描述"
-            />
-          </el-form-item>
-          <el-form-item label="数据集版本号" prop="version" :required="false">
-            <el-input v-model="formData.version" placeholder="请输入数据集版本号" />
-          </el-form-item>
-          <el-form-item label="数据集来源" prop="source" :required="false">
-            <el-input v-model="formData.source" placeholder="请输入数据集来源" />
-          </el-form-item>
-          <el-form-item label="总共图片数" prop="total_images" :required="false">
-            <el-input-number v-model="formData.total_images" :min="0" controls-position="right" />
-          </el-form-item>
-          <el-form-item label="创建者" prop="created_by" :required="false">
-            <el-select
-              v-model="formData.created_by"
-              placeholder="请选择创建者"
-              clearable
-              filterable
-              style="width: 100%"
-            >
-              <el-option
-                v-for="user in userOptions"
-                :key="user.id"
-                :label="user.name"
-                :value="user.id"
+          <template v-if="dialogVisible.type === 'create'">
+            <el-form-item label="数据集名称" prop="name">
+              <el-input v-model="formData.name" placeholder="请输入数据集名称" />
+            </el-form-item>
+            <el-form-item label="描述" prop="description">
+              <el-input
+                v-model="formData.description"
+                :rows="4"
+                :maxlength="200"
+                show-word-limit
+                type="textarea"
+                placeholder="请输入描述（可选）"
               />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="更新者" prop="updated_by" :required="false">
-            <el-select
-              v-model="formData.updated_by"
-              placeholder="请选择更新者"
-              clearable
-              filterable
-              style="width: 100%"
-            >
-              <el-option
-                v-for="user in userOptions"
-                :key="user.id"
-                :label="user.name"
-                :value="user.id"
+            </el-form-item>
+            <el-form-item label="数据集版本号" prop="version">
+              <el-input v-model="formData.version" placeholder="请输入数据集版本号（可选）" />
+            </el-form-item>
+            <el-form-item label="数据集来源" prop="source">
+              <el-input v-model="formData.source" placeholder="请输入数据集来源（默认 coco）" />
+            </el-form-item>
+            <el-form-item label="数据划分" prop="split_type">
+              <el-select v-model="cocoSplitType" placeholder="可选" clearable style="width: 100%">
+                <el-option label="train" value="train" />
+                <el-option label="val" value="val" />
+                <el-option label="test" value="test" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="图片压缩包" required>
+              <el-upload
+                v-model:file-list="cocoImagesZipFileList"
+                class="w-full"
+                accept=".zip"
+                :drag="true"
+                :limit="1"
+                :auto-upload="false"
+                :on-change="handleCocoImagesZipChange"
+                :on-remove="handleCocoImagesZipRemove"
+              >
+                <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                <div class="el-upload__text">将 zip 拖到此处，或<em>点击上传</em></div>
+              </el-upload>
+            </el-form-item>
+            <el-form-item label="标注文件" required>
+              <el-upload
+                v-model:file-list="cocoAnnotationsFileList"
+                class="w-full"
+                accept=".json"
+                :drag="true"
+                :limit="1"
+                :auto-upload="false"
+                :on-change="handleCocoAnnotationsChange"
+                :on-remove="handleCocoAnnotationsRemove"
+              >
+                <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                <div class="el-upload__text">将 annotations.json 拖到此处，或<em>点击上传</em></div>
+              </el-upload>
+            </el-form-item>
+          </template>
+          <template v-else>
+            <el-form-item label="数据集 ID" prop="id" :required="false">
+              <el-input v-model="formData.id" placeholder="数据集 ID" disabled />
+            </el-form-item>
+            <el-form-item label="数据集名称" prop="name" :required="false">
+              <el-input v-model="formData.name" placeholder="请输入数据集名称" />
+            </el-form-item>
+            <el-form-item label="描述" prop="description">
+              <el-input
+                v-model="formData.description"
+                :rows="4"
+                :maxlength="100"
+                show-word-limit
+                type="textarea"
+                placeholder="请输入描述"
               />
-            </el-select>
-          </el-form-item>
+            </el-form-item>
+            <el-form-item label="数据集版本号" prop="version" :required="false">
+              <el-input v-model="formData.version" placeholder="请输入数据集版本号" />
+            </el-form-item>
+            <el-form-item label="数据集来源" prop="source" :required="false">
+              <el-input v-model="formData.source" placeholder="请输入数据集来源" />
+            </el-form-item>
+            <el-form-item label="总共图片数" prop="total_images" :required="false">
+              <el-input-number v-model="formData.total_images" :min="0" controls-position="right" />
+            </el-form-item>
+            <el-form-item label="创建者" prop="created_by" :required="false">
+              <el-select
+                v-model="formData.created_by"
+                placeholder="请选择创建者"
+                clearable
+                filterable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="user in userOptions"
+                  :key="user.id"
+                  :label="user.name"
+                  :value="user.id"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="更新者" prop="updated_by" :required="false">
+              <el-select
+                v-model="formData.updated_by"
+                placeholder="请选择更新者"
+                clearable
+                filterable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="user in userOptions"
+                  :key="user.id"
+                  :label="user.name"
+                  :value="user.id"
+                />
+              </el-select>
+            </el-form-item>
+          </template>
         </el-form>
       </template>
 
@@ -507,8 +564,8 @@ defineOptions({
 });
 
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { QuestionFilled, ArrowUp, ArrowDown } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox, type UploadFile, type UploadUserFile } from "element-plus";
+import { QuestionFilled, ArrowUp, ArrowDown, UploadFilled } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
 import { useDictStore } from "@/store";
 import { ResultEnum } from "@/enums/api/result.enum";
@@ -676,6 +733,12 @@ const formData = reactive<DatasetsForm>({
   updated_by: undefined,
 });
 
+const cocoSplitType = ref<string | undefined>(undefined);
+const cocoImagesZipFileList = ref<UploadUserFile[]>([]);
+const cocoAnnotationsFileList = ref<UploadUserFile[]>([]);
+const cocoImagesZipRaw = ref<File | null>(null);
+const cocoAnnotationsRaw = ref<File | null>(null);
+
 // 定义初始表单数据常量
 const initialFormData: Omit<DatasetsForm, 'id'> = {
   name: undefined,
@@ -703,13 +766,33 @@ const dialogVisible = reactive({
 const rules = reactive({
   id: [{ required: false, message: "请输入数据集ID", trigger: "blur" }],
   name: [{ required: true, message: "请输入数据集名称", trigger: "blur" }],
-  description: [{ required: true, message: "请输入数据集描述", trigger: "blur" }],
-  version: [{ required: true, message: "请输入数据集版本号", trigger: "blur" }],
-  source: [{ required: true, message: "请输入数据集来源", trigger: "blur" }],
+  description: [{ required: false, message: "请输入数据集描述", trigger: "blur" }],
+  version: [{ required: false, message: "请输入数据集版本号", trigger: "blur" }],
+  source: [{ required: false, message: "请输入数据集来源", trigger: "blur" }],
   total_images: [{ required: false, message: "请输入总共图片数", trigger: "blur" }],
   created_by: [{ required: false, message: "请输入创建者", trigger: "blur" }],
   updated_by: [{ required: false, message: "请输入更新者", trigger: "blur" }],
 });
+
+const handleCocoImagesZipChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  cocoImagesZipRaw.value = (file.raw as File) || null;
+  cocoImagesZipFileList.value = fileList;
+};
+
+const handleCocoImagesZipRemove = () => {
+  cocoImagesZipRaw.value = null;
+  cocoImagesZipFileList.value = [];
+};
+
+const handleCocoAnnotationsChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  cocoAnnotationsRaw.value = (file.raw as File) || null;
+  cocoAnnotationsFileList.value = fileList;
+};
+
+const handleCocoAnnotationsRemove = () => {
+  cocoAnnotationsRaw.value = null;
+  cocoAnnotationsFileList.value = [];
+};
 
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
@@ -779,6 +862,11 @@ async function resetForm() {
   // 完全重置 formData 为初始状态（不含 id）
   Object.assign(formData, initialFormData);
   formData.id = undefined;
+  cocoSplitType.value = undefined;
+  cocoImagesZipRaw.value = null;
+  cocoAnnotationsRaw.value = null;
+  cocoImagesZipFileList.value = [];
+  cocoAnnotationsFileList.value = [];
 }
 
 // 行复选框选中项变化
@@ -810,6 +898,11 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     // 新增时只需要重置表单字段，id 保持 undefined
     Object.assign(formData, initialFormData);
     formData.id = undefined;
+    cocoSplitType.value = undefined;
+    cocoImagesZipRaw.value = null;
+    cocoAnnotationsRaw.value = null;
+    cocoImagesZipFileList.value = [];
+    cocoAnnotationsFileList.value = [];
   }
   dialogVisible.visible = true;
 }
@@ -841,7 +934,27 @@ async function handleSubmit() {
         }
       } else {
         try {
-          await DatasetsAPI.createDatasets(submitData);
+          if (!cocoImagesZipRaw.value) {
+            ElMessage.error("请上传图片zip包");
+            loading.value = false;
+            return;
+          }
+          if (!cocoAnnotationsRaw.value) {
+            ElMessage.error("请上传标注json文件");
+            loading.value = false;
+            return;
+          }
+
+          const fd = new FormData();
+          fd.append("name", String(submitData.name || ""));
+          if (submitData.description) fd.append("description", String(submitData.description));
+          if (submitData.version) fd.append("version", String(submitData.version));
+          fd.append("source", String(submitData.source || "coco"));
+          if (cocoSplitType.value) fd.append("split_type", cocoSplitType.value);
+          fd.append("images_zip", cocoImagesZipRaw.value);
+          fd.append("annotations_json", cocoAnnotationsRaw.value);
+
+          await DatasetsAPI.importCocoDataset(fd);
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
