@@ -162,6 +162,17 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 最大文件大小(10MB)
 
     # ================================================= #
+    # ***************** MinIO 配置 ***************** #
+    # ================================================= #
+    DATASET_STORAGE_BACKEND: Literal["local", "minio"] = "local"
+    MINIO_ENDPOINT: str = ""
+    MINIO_ACCESS_KEY: str = ""
+    MINIO_SECRET_KEY: str = ""
+    MINIO_BUCKET: str = "lingxiadmin"
+    MINIO_SECURE: bool = False
+    MINIO_DATASET_PREFIX: str = "datasets"
+
+    # ================================================= #
     # ***************** Swagger配置 ***************** #
     # ================================================= #
     SWAGGER_CSS_URL: str = "static/swagger/swagger-ui/swagger-ui.css"

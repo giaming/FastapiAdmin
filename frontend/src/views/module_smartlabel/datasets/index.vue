@@ -407,6 +407,51 @@
           label-position="right"
         >
           <template v-if="dialogVisible.type === 'create'">
+            <el-form-item label="导入格式" required>
+              <el-row :gutter="12" class="w-full">
+                <el-col :span="12">
+                  <el-card
+                    shadow="hover"
+                    :class="{ 'is-active': importFormat === 'coco' }"
+                    @click="setImportFormat('coco')"
+                  >
+                    <div class="format-title">COCO</div>
+                    <div class="format-desc">包含图片与标注的 JSON 文件</div>
+                  </el-card>
+                </el-col>
+                <el-col :span="12">
+                  <el-card
+                    shadow="hover"
+                    :class="{ 'is-active': importFormat === 'voc' }"
+                    @click="setImportFormat('voc')"
+                  >
+                    <div class="format-title">Pascal VOC</div>
+                    <div class="format-desc">包含图片与标注的 XML 文件</div>
+                  </el-card>
+                </el-col>
+                <el-col :span="12" class="mt-12px">
+                  <el-card
+                    shadow="hover"
+                    :class="{ 'is-active': importFormat === 'yolo' }"
+                    @click="setImportFormat('yolo')"
+                  >
+                    <div class="format-title">YOLO</div>
+                    <div class="format-desc">TXT 标签与可选 YAML 类别</div>
+                  </el-card>
+                </el-col>
+                <el-col :span="12" class="mt-12px">
+                  <el-card
+                    shadow="hover"
+                    :class="{ 'is-active': importFormat === 'csv' }"
+                    @click="setImportFormat('csv')"
+                  >
+                    <div class="format-title">CSV</div>
+                    <div class="format-desc">表格标注与图片</div>
+                  </el-card>
+                </el-col>
+              </el-row>
+            </el-form-item>
+
             <el-form-item label="数据集名称" prop="name">
               <el-input v-model="formData.name" placeholder="请输入数据集名称" />
             </el-form-item>
@@ -424,7 +469,7 @@
               <el-input v-model="formData.version" placeholder="请输入数据集版本号（可选）" />
             </el-form-item>
             <el-form-item label="数据集来源" prop="source">
-              <el-input v-model="formData.source" placeholder="请输入数据集来源（默认 coco）" />
+              <el-input v-model="formData.source" placeholder="请输入数据集来源（默认随导入格式）" />
             </el-form-item>
             <el-form-item label="数据划分" prop="split_type">
               <el-select v-model="cocoSplitType" placeholder="可选" clearable style="width: 100%">
@@ -433,36 +478,152 @@
                 <el-option label="test" value="test" />
               </el-select>
             </el-form-item>
-            <el-form-item label="图片压缩包" required>
-              <el-upload
-                v-model:file-list="cocoImagesZipFileList"
-                class="w-full"
-                accept=".zip"
-                :drag="true"
-                :limit="1"
-                :auto-upload="false"
-                :on-change="handleCocoImagesZipChange"
-                :on-remove="handleCocoImagesZipRemove"
-              >
-                <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-                <div class="el-upload__text">将 zip 拖到此处，或<em>点击上传</em></div>
-              </el-upload>
-            </el-form-item>
-            <el-form-item label="标注文件" required>
-              <el-upload
-                v-model:file-list="cocoAnnotationsFileList"
-                class="w-full"
-                accept=".json"
-                :drag="true"
-                :limit="1"
-                :auto-upload="false"
-                :on-change="handleCocoAnnotationsChange"
-                :on-remove="handleCocoAnnotationsRemove"
-              >
-                <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-                <div class="el-upload__text">将 annotations.json 拖到此处，或<em>点击上传</em></div>
-              </el-upload>
-            </el-form-item>
+            <template v-if="importFormat === 'coco'">
+              <el-form-item label="图片压缩包" required>
+                <el-upload
+                  v-model:file-list="cocoImagesZipFileList"
+                  class="w-full"
+                  accept=".zip"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleCocoImagesZipChange"
+                  :on-remove="handleCocoImagesZipRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 zip 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+              <el-form-item label="标注文件" required>
+                <el-upload
+                  v-model:file-list="cocoAnnotationsFileList"
+                  class="w-full"
+                  accept=".json"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleCocoAnnotationsChange"
+                  :on-remove="handleCocoAnnotationsRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 annotations.json 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+            </template>
+
+            <template v-else-if="importFormat === 'voc'">
+              <el-form-item label="图片压缩包" required>
+                <el-upload
+                  v-model:file-list="vocImagesZipFileList"
+                  class="w-full"
+                  accept=".zip"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleVocImagesZipChange"
+                  :on-remove="handleVocImagesZipRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 images.zip 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+              <el-form-item label="标注压缩包" required>
+                <el-upload
+                  v-model:file-list="vocAnnotationsZipFileList"
+                  class="w-full"
+                  accept=".zip"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleVocAnnotationsZipChange"
+                  :on-remove="handleVocAnnotationsZipRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 annotations.zip(xml) 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+            </template>
+
+            <template v-else-if="importFormat === 'yolo'">
+              <el-form-item label="图片压缩包" required>
+                <el-upload
+                  v-model:file-list="yoloImagesZipFileList"
+                  class="w-full"
+                  accept=".zip"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleYoloImagesZipChange"
+                  :on-remove="handleYoloImagesZipRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 images.zip 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+              <el-form-item label="labels压缩包" required>
+                <el-upload
+                  v-model:file-list="yoloLabelsZipFileList"
+                  class="w-full"
+                  accept=".zip"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleYoloLabelsZipChange"
+                  :on-remove="handleYoloLabelsZipRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 labels.zip(txt) 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+              <el-form-item label="data.yaml">
+                <el-upload
+                  v-model:file-list="yoloDataYamlFileList"
+                  class="w-full"
+                  accept=".yaml,.yml"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleYoloDataYamlChange"
+                  :on-remove="handleYoloDataYamlRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 data.yaml 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+            </template>
+
+            <template v-else-if="importFormat === 'csv'">
+              <el-form-item label="图片压缩包" required>
+                <el-upload
+                  v-model:file-list="csvImagesZipFileList"
+                  class="w-full"
+                  accept=".zip"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleCsvImagesZipChange"
+                  :on-remove="handleCsvImagesZipRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 images.zip 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+              <el-form-item label="标注文件" required>
+                <el-upload
+                  v-model:file-list="csvAnnotationsFileList"
+                  class="w-full"
+                  accept=".csv"
+                  :drag="true"
+                  :limit="1"
+                  :auto-upload="false"
+                  :on-change="handleCsvAnnotationsChange"
+                  :on-remove="handleCsvAnnotationsRemove"
+                >
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">将 annotations.csv 拖到此处，或<em>点击上传</em></div>
+                </el-upload>
+              </el-form-item>
+            </template>
           </template>
           <template v-else>
             <el-form-item label="数据集 ID" prop="id" :required="false">
@@ -734,10 +895,29 @@ const formData = reactive<DatasetsForm>({
 });
 
 const cocoSplitType = ref<string | undefined>(undefined);
+type ImportFormat = "coco" | "voc" | "yolo" | "csv";
+const importFormat = ref<ImportFormat>("coco");
 const cocoImagesZipFileList = ref<UploadUserFile[]>([]);
 const cocoAnnotationsFileList = ref<UploadUserFile[]>([]);
 const cocoImagesZipRaw = ref<File | null>(null);
 const cocoAnnotationsRaw = ref<File | null>(null);
+
+const vocImagesZipFileList = ref<UploadUserFile[]>([]);
+const vocAnnotationsZipFileList = ref<UploadUserFile[]>([]);
+const vocImagesZipRaw = ref<File | null>(null);
+const vocAnnotationsZipRaw = ref<File | null>(null);
+
+const yoloImagesZipFileList = ref<UploadUserFile[]>([]);
+const yoloLabelsZipFileList = ref<UploadUserFile[]>([]);
+const yoloDataYamlFileList = ref<UploadUserFile[]>([]);
+const yoloImagesZipRaw = ref<File | null>(null);
+const yoloLabelsZipRaw = ref<File | null>(null);
+const yoloDataYamlRaw = ref<File | null>(null);
+
+const csvImagesZipFileList = ref<UploadUserFile[]>([]);
+const csvAnnotationsFileList = ref<UploadUserFile[]>([]);
+const csvImagesZipRaw = ref<File | null>(null);
+const csvAnnotationsRaw = ref<File | null>(null);
 
 // 定义初始表单数据常量
 const initialFormData: Omit<DatasetsForm, 'id'> = {
@@ -793,6 +973,110 @@ const handleCocoAnnotationsRemove = () => {
   cocoAnnotationsRaw.value = null;
   cocoAnnotationsFileList.value = [];
 };
+
+const handleVocImagesZipChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  vocImagesZipRaw.value = (file.raw as File) || null;
+  vocImagesZipFileList.value = fileList;
+};
+
+const handleVocImagesZipRemove = () => {
+  vocImagesZipRaw.value = null;
+  vocImagesZipFileList.value = [];
+};
+
+const handleVocAnnotationsZipChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  vocAnnotationsZipRaw.value = (file.raw as File) || null;
+  vocAnnotationsZipFileList.value = fileList;
+};
+
+const handleVocAnnotationsZipRemove = () => {
+  vocAnnotationsZipRaw.value = null;
+  vocAnnotationsZipFileList.value = [];
+};
+
+const handleYoloImagesZipChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  yoloImagesZipRaw.value = (file.raw as File) || null;
+  yoloImagesZipFileList.value = fileList;
+};
+
+const handleYoloImagesZipRemove = () => {
+  yoloImagesZipRaw.value = null;
+  yoloImagesZipFileList.value = [];
+};
+
+const handleYoloLabelsZipChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  yoloLabelsZipRaw.value = (file.raw as File) || null;
+  yoloLabelsZipFileList.value = fileList;
+};
+
+const handleYoloLabelsZipRemove = () => {
+  yoloLabelsZipRaw.value = null;
+  yoloLabelsZipFileList.value = [];
+};
+
+const handleYoloDataYamlChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  yoloDataYamlRaw.value = (file.raw as File) || null;
+  yoloDataYamlFileList.value = fileList;
+};
+
+const handleYoloDataYamlRemove = () => {
+  yoloDataYamlRaw.value = null;
+  yoloDataYamlFileList.value = [];
+};
+
+const handleCsvImagesZipChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  csvImagesZipRaw.value = (file.raw as File) || null;
+  csvImagesZipFileList.value = fileList;
+};
+
+const handleCsvImagesZipRemove = () => {
+  csvImagesZipRaw.value = null;
+  csvImagesZipFileList.value = [];
+};
+
+const handleCsvAnnotationsChange = (file: UploadFile, fileList: UploadUserFile[]) => {
+  csvAnnotationsRaw.value = (file.raw as File) || null;
+  csvAnnotationsFileList.value = fileList;
+};
+
+const handleCsvAnnotationsRemove = () => {
+  csvAnnotationsRaw.value = null;
+  csvAnnotationsFileList.value = [];
+};
+
+function resetImportFiles() {
+  cocoImagesZipRaw.value = null;
+  cocoAnnotationsRaw.value = null;
+  cocoImagesZipFileList.value = [];
+  cocoAnnotationsFileList.value = [];
+
+  vocImagesZipRaw.value = null;
+  vocAnnotationsZipRaw.value = null;
+  vocImagesZipFileList.value = [];
+  vocAnnotationsZipFileList.value = [];
+
+  yoloImagesZipRaw.value = null;
+  yoloLabelsZipRaw.value = null;
+  yoloDataYamlRaw.value = null;
+  yoloImagesZipFileList.value = [];
+  yoloLabelsZipFileList.value = [];
+  yoloDataYamlFileList.value = [];
+
+  csvImagesZipRaw.value = null;
+  csvAnnotationsRaw.value = null;
+  csvImagesZipFileList.value = [];
+  csvAnnotationsFileList.value = [];
+}
+
+function setImportFormat(fmt: ImportFormat) {
+  if (importFormat.value !== fmt) {
+    resetImportFiles();
+  }
+  importFormat.value = fmt;
+  if (!formData.source) {
+    formData.source = fmt;
+  }
+}
 
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
@@ -863,10 +1147,8 @@ async function resetForm() {
   Object.assign(formData, initialFormData);
   formData.id = undefined;
   cocoSplitType.value = undefined;
-  cocoImagesZipRaw.value = null;
-  cocoAnnotationsRaw.value = null;
-  cocoImagesZipFileList.value = [];
-  cocoAnnotationsFileList.value = [];
+  importFormat.value = "coco";
+  resetImportFiles();
 }
 
 // 行复选框选中项变化
@@ -899,10 +1181,8 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     Object.assign(formData, initialFormData);
     formData.id = undefined;
     cocoSplitType.value = undefined;
-    cocoImagesZipRaw.value = null;
-    cocoAnnotationsRaw.value = null;
-    cocoImagesZipFileList.value = [];
-    cocoAnnotationsFileList.value = [];
+    importFormat.value = "coco";
+    resetImportFiles();
   }
   dialogVisible.visible = true;
 }
@@ -934,27 +1214,72 @@ async function handleSubmit() {
         }
       } else {
         try {
-          if (!cocoImagesZipRaw.value) {
-            ElMessage.error("请上传图片zip包");
-            loading.value = false;
-            return;
-          }
-          if (!cocoAnnotationsRaw.value) {
-            ElMessage.error("请上传标注json文件");
-            loading.value = false;
-            return;
-          }
-
           const fd = new FormData();
           fd.append("name", String(submitData.name || ""));
           if (submitData.description) fd.append("description", String(submitData.description));
           if (submitData.version) fd.append("version", String(submitData.version));
-          fd.append("source", String(submitData.source || "coco"));
+          fd.append("source", String(submitData.source || importFormat.value));
           if (cocoSplitType.value) fd.append("split_type", cocoSplitType.value);
-          fd.append("images_zip", cocoImagesZipRaw.value);
-          fd.append("annotations_json", cocoAnnotationsRaw.value);
 
-          await DatasetsAPI.importCocoDataset(fd);
+          if (importFormat.value === "coco") {
+            if (!cocoImagesZipRaw.value) {
+              ElMessage.error("请上传图片zip包");
+              loading.value = false;
+              return;
+            }
+            if (!cocoAnnotationsRaw.value) {
+              ElMessage.error("请上传标注json文件");
+              loading.value = false;
+              return;
+            }
+            fd.append("images_zip", cocoImagesZipRaw.value);
+            fd.append("annotations_json", cocoAnnotationsRaw.value);
+            await DatasetsAPI.importCocoDataset(fd);
+          } else if (importFormat.value === "voc") {
+            if (!vocImagesZipRaw.value) {
+              ElMessage.error("请上传图片zip包");
+              loading.value = false;
+              return;
+            }
+            if (!vocAnnotationsZipRaw.value) {
+              ElMessage.error("请上传标注xml zip包");
+              loading.value = false;
+              return;
+            }
+            fd.append("images_zip", vocImagesZipRaw.value);
+            fd.append("annotations_zip", vocAnnotationsZipRaw.value);
+            await DatasetsAPI.importVocDataset(fd);
+          } else if (importFormat.value === "yolo") {
+            if (!yoloImagesZipRaw.value) {
+              ElMessage.error("请上传图片zip包");
+              loading.value = false;
+              return;
+            }
+            if (!yoloLabelsZipRaw.value) {
+              ElMessage.error("请上传labels zip包");
+              loading.value = false;
+              return;
+            }
+            fd.append("images_zip", yoloImagesZipRaw.value);
+            fd.append("labels_zip", yoloLabelsZipRaw.value);
+            if (yoloDataYamlRaw.value) fd.append("data_yaml", yoloDataYamlRaw.value);
+            await DatasetsAPI.importYoloDataset(fd);
+          } else if (importFormat.value === "csv") {
+            if (!csvImagesZipRaw.value) {
+              ElMessage.error("请上传图片zip包");
+              loading.value = false;
+              return;
+            }
+            if (!csvAnnotationsRaw.value) {
+              ElMessage.error("请上传标注csv文件");
+              loading.value = false;
+              return;
+            }
+            fd.append("images_zip", csvImagesZipRaw.value);
+            fd.append("annotations_csv", csvAnnotationsRaw.value);
+            await DatasetsAPI.importCsvDataset(fd);
+          }
+
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -1020,4 +1345,19 @@ onMounted(async () => {
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.format-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.format-desc {
+  margin-top: 4px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.is-active {
+  border-color: var(--el-color-primary);
+}
+</style>

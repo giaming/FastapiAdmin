@@ -84,6 +84,33 @@ const DatasetsAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
+  importVocDataset(body: FormData) {
+    return request<ApiResponse<DatasetsTable>>({
+      url: `${API_PATH}/import/voc`,
+      method: "post",
+      data: body,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  importYoloDataset(body: FormData) {
+    return request<ApiResponse<DatasetsTable>>({
+      url: `${API_PATH}/import/yolo`,
+      method: "post",
+      data: body,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  importCsvDataset(body: FormData) {
+    return request<ApiResponse<DatasetsTable>>({
+      url: `${API_PATH}/import/csv`,
+      method: "post",
+      data: body,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };
 
 export default DatasetsAPI;

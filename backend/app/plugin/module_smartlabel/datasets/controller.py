@@ -121,6 +121,94 @@ async def import_coco_datasets_controller(
     log.info("上传COCO数据集并创建成功")
     return SuccessResponse(data=result_dict, msg="上传COCO数据集并创建成功")
 
+@DatasetsRouter.post(
+    "/import/voc",
+    summary="上传VOC数据集并创建",
+    description="上传VOC数据集并创建（包含图片zip与标注xml zip）",
+)
+async def import_voc_datasets_controller(
+    name: str = Form(..., description="数据集名称"),
+    description: str | None = Form(None, description="数据集描述"),
+    version: str | None = Form(None, description="数据集版本号"),
+    source: str | None = Form("voc", description="数据集来源"),
+    split_type: str | None = Form(None, description="数据划分：train/val/test"),
+    images_zip: UploadFile = File(..., description="图片zip包"),
+    annotations_zip: UploadFile = File(..., description="标注xml zip包"),
+    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:datasets:create"])),
+) -> JSONResponse:
+    result_dict = await DatasetsService.import_voc_dataset_service(
+        auth=auth,
+        name=name,
+        description=description,
+        version=version,
+        source=source,
+        split_type=split_type,
+        images_zip=images_zip,
+        annotations_zip=annotations_zip,
+    )
+    log.info("上传VOC数据集并创建成功")
+    return SuccessResponse(data=result_dict, msg="上传VOC数据集并创建成功")
+
+
+@DatasetsRouter.post(
+    "/import/yolo",
+    summary="上传YOLO数据集并创建",
+    description="上传YOLO数据集并创建（包含图片zip与labels zip，可选data.yaml）",
+)
+async def import_yolo_datasets_controller(
+    name: str = Form(..., description="数据集名称"),
+    description: str | None = Form(None, description="数据集描述"),
+    version: str | None = Form(None, description="数据集版本号"),
+    source: str | None = Form("yolo", description="数据集来源"),
+    split_type: str | None = Form(None, description="数据划分：train/val/test"),
+    images_zip: UploadFile = File(..., description="图片zip包"),
+    labels_zip: UploadFile = File(..., description="labels zip包"),
+    data_yaml: UploadFile | None = File(None, description="data.yaml(可选)"),
+    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:datasets:create"])),
+) -> JSONResponse:
+    result_dict = await DatasetsService.import_yolo_dataset_service(
+        auth=auth,
+        name=name,
+        description=description,
+        version=version,
+        source=source,
+        split_type=split_type,
+        images_zip=images_zip,
+        labels_zip=labels_zip,
+        data_yaml=data_yaml,
+    )
+    log.info("上传YOLO数据集并创建成功")
+    return SuccessResponse(data=result_dict, msg="上传YOLO数据集并创建成功")
+
+
+@DatasetsRouter.post(
+    "/import/csv",
+    summary="上传CSV数据集并创建",
+    description="上传CSV数据集并创建（包含图片zip与标注csv）",
+)
+async def import_csv_datasets_controller(
+    name: str = Form(..., description="数据集名称"),
+    description: str | None = Form(None, description="数据集描述"),
+    version: str | None = Form(None, description="数据集版本号"),
+    source: str | None = Form("csv", description="数据集来源"),
+    split_type: str | None = Form(None, description="数据划分：train/val/test"),
+    images_zip: UploadFile = File(..., description="图片zip包"),
+    annotations_csv: UploadFile = File(..., description="标注csv文件"),
+    auth: AuthSchema = Depends(AuthPermission(["module_smartlabel:datasets:create"])),
+) -> JSONResponse:
+    result_dict = await DatasetsService.import_csv_dataset_service(
+        auth=auth,
+        name=name,
+        description=description,
+        version=version,
+        source=source,
+        split_type=split_type,
+        images_zip=images_zip,
+        annotations_csv=annotations_csv,
+    )
+    log.info("上传CSV数据集并创建成功")
+    return SuccessResponse(data=result_dict, msg="上传CSV数据集并创建成功")
+
 @DatasetsRouter.put(
     "/update/{id}",
     summary="修改数据集管理",
